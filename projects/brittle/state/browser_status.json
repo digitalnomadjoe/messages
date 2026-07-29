@@ -1,11 +1,20 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T18:30:50.900534Z",
-  "repo_head": "0b572ef8be1c",
-  "browser_telephone_ready": true,
-  "local_action_required": false,
-  "readiness_blockers": [],
-  "required_local_actions": [],
+  "generated_at": "2026-07-29T18:32:38.692621Z",
+  "repo_head": "bc707df1fe7c",
+  "browser_telephone_ready": false,
+  "local_action_required": true,
+  "readiness_blockers": [
+    "browser bridge is installed but not running"
+  ],
+  "required_local_actions": [
+    {
+      "reason": "Browser bridge is installed but inactive",
+      "command": "systemctl --user enable --now brittle-browser-bridge.service",
+      "verify_command": "systemctl --user status brittle-browser-bridge.service --no-pager",
+      "expected_result": "Active: active (running)"
+    }
+  ],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -72,7 +81,7 @@
   "api_reviewer_mode_enabled": false,
   "services": {
     "bridge": {
-      "active": true,
+      "active": false,
       "pid": 2680767,
       "restarts": 0
     },
@@ -92,8 +101,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T18:30:50.900534Z",
-  "last_successful_sync": "2026-07-29T18:30:50.900534Z",
+  "gateway_heartbeat": "2026-07-29T18:32:38.692621Z",
+  "last_successful_sync": "2026-07-29T18:32:38.692621Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
