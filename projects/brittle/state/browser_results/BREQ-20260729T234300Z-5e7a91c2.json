@@ -1,0 +1,8 @@
+{
+  "request_id": "BREQ-20260729T234300Z-5e7a91c2",
+  "status": "refused",
+  "result_receipt": "BRITTLE-20260729T234753Z-59bf9753",
+  "canonical_message_ids": [],
+  "decided_at": "2026-07-29T23:47:53.334054Z",
+  "reason": "not valid JSON: Extra data: line 1 column 1929 (char 1928)"
+}

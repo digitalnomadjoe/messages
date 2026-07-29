@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T23:41:25.157801Z",
-  "repo_head_at_generation": "779c22299ad8",
+  "generated_at": "2026-07-29T23:47:54.812787Z",
+  "repo_head_at_generation": "043a5c560888",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -85,7 +85,7 @@
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 24,
+    "receipt": 25,
     "report": 8,
     "review": 7,
     "telephone_run": 3,
@@ -114,8 +114,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T23:41:25.157801Z",
-  "last_successful_sync": "2026-07-29T23:41:25.157801Z",
+  "gateway_heartbeat": "2026-07-29T23:47:54.812787Z",
+  "last_successful_sync": "2026-07-29T23:47:54.812787Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
@@ -129,7 +129,12 @@
   },
   "browser_requests": {
     "pending": [],
-    "refused": [],
+    "refused": [
+      {
+        "request_id": "BREQ-20260729T234300Z-5e7a91c2",
+        "reason": "not valid JSON: Extra data: line 1 column 1929 (char 1928)"
+      }
+    ],
     "recent_results": [
       {
         "request_id": "BREQ-20260729T175947Z-5958c2b7",
@@ -176,6 +181,14 @@
           "BRITTLE-20260729T232605Z-c5586ff7"
         ],
         "decided_at": "2026-07-29T23:26:05.798984Z"
+      },
+      {
+        "request_id": "BREQ-20260729T234300Z-5e7a91c2",
+        "status": "refused",
+        "result_receipt": "BRITTLE-20260729T234753Z-59bf9753",
+        "canonical_message_ids": [],
+        "decided_at": "2026-07-29T23:47:53.334054Z",
+        "reason": "not valid JSON: Extra data: line 1 column 1929 (char 1928)"
       }
     ]
   },
