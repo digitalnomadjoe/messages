@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T18:05:42.030358Z",
-  "repo_head": "4a7c23bd74e7",
+  "generated_at": "2026-07-29T18:06:13.376896Z",
+  "repo_head": "59b6b049d0f1",
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -42,7 +42,7 @@
       "stop_reason_detail": "still running",
       "current_ticket": {
         "id": "BRITTLE-20260729T180316Z-cf3fd189",
-        "status": "claimed",
+        "status": "completed",
         "title": "CERT-BROWSER-CONTROL cycle 1: control service two-poll stability check"
       },
       "current_claim": "BRITTLE-20260729T180539Z-7bf649f4",
@@ -53,19 +53,16 @@
     }
   ],
   "open_tickets_by_lane": {},
-  "active_claims": {
-    "BRITTLE-20260729T180316Z-cf3fd189": {
-      "agent": "control",
-      "lease_expires_at": "2026-07-29T18:50:39.678543Z"
-    }
-  },
+  "active_claims": {},
   "open_escalations": [],
-  "reports_awaiting_review": [],
+  "reports_awaiting_review": [
+    "BRITTLE-20260729T180609Z-f2f6b6e0"
+  ],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 17,
-    "report": 6,
+    "receipt": 18,
+    "report": 7,
     "review": 6,
     "telephone_run": 2,
     "ticket": 3
@@ -93,8 +90,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T18:05:42.030358Z",
-  "last_successful_sync": "2026-07-29T18:05:42.030358Z",
+  "gateway_heartbeat": "2026-07-29T18:06:13.376896Z",
+  "last_successful_sync": "2026-07-29T18:06:13.376896Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
