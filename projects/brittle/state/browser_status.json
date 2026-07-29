@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T18:18:59.119447Z",
-  "repo_head": "5da34cdf01dd",
+  "generated_at": "2026-07-29T18:23:05.258283Z",
+  "repo_head": "1d73e0391606",
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -88,8 +88,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T18:18:59.119447Z",
-  "last_successful_sync": "2026-07-29T18:18:59.119447Z",
+  "gateway_heartbeat": "2026-07-29T18:23:05.258283Z",
+  "last_successful_sync": "2026-07-29T18:23:05.258283Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
