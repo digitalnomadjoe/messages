@@ -75,6 +75,26 @@ the exact stop reason.
 
 Add `--json` to any command for machine-readable output.
 
+### Reading the status output
+
+* **`lane` vs `unit`.** The *lane* (`locomotion` or `control`) is which agent
+  may claim the work; it is an access boundary. The *unit* (e.g.
+  `CERT-TELEPHONE-CONTROL`) is the BRITTLE work item the run belongs to; it is
+  a label for grouping, not a permission.
+* **`current ticket` / `current claim` are historical once a run ends.** On a
+  `COMPLETED` or `STOPPED` run they show the last ticket and claim the run
+  produced, not something still in flight. Check the ticket's own status
+  (`completed`, `blocked`, …) to see what actually happened to it.
+* **Message counts in `messagesctl status` are lifetime totals.** `escalation=1`
+  means one escalation has ever been published; `open escalations: -` means
+  none are currently awaiting an answer. A resolved escalation still counts in
+  the total forever — nothing is ever deleted from an append-only bus.
+* **There is no upper ceiling on `--max-cycles`.** The tool requires a bound and
+  refuses anything below 1, but it will accept a large number. The real limits
+  are the spending guard and the reviewer's own willingness to keep issuing
+  tickets, both of which stop a run long before an implausible cycle count is
+  reached. Choose a maximum you would be comfortable paying for.
+
 ---
 
 ## 4. Starting a count-bounded run
