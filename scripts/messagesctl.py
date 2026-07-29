@@ -194,7 +194,7 @@ def cmd_sync(args) -> int:
             path.parent.mkdir(parents=True, exist_ok=True)
             text = json.dumps(payload, indent=2) + "\n"
             volatile = ("generated_at", "gateway_heartbeat",
-                        "last_successful_sync", "repo_head")
+                        "last_successful_sync", "repo_head_at_generation")
             prev = None
             if path.exists():
                 try:

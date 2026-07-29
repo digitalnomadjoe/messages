@@ -809,7 +809,9 @@ def build_browser_status(cfg: dict, msgs: dict, repo: ml.Repo,
     return {
         "schema": 1,
         "generated_at": ml.iso(now),
-        "repo_head": repo.head()[:12],
+        # HEAD as of generation -- necessarily one commit behind the commit
+        # that publishes this very file. Do not use it to correlate.
+        "repo_head_at_generation": repo.head()[:12],
         **readiness,
         "telephone_runs": runs,
         "open_tickets_by_lane": idx["open_ticket_by_lane"],
