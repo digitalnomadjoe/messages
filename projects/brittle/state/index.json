@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "latest_report_by_lane": {},
+  "open_ticket_by_lane": {},
+  "active_claims": {},
+  "open_escalations": [],
+  "reviewer_cursor": null,
+  "counts": {
+    "escalation": 0,
+    "owner_decision": 0,
+    "receipt": 0,
+    "report": 0,
+    "review": 0,
+    "ticket": 0
+  }
+}

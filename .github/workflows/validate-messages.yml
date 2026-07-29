@@ -1,0 +1,57 @@
+name: validate-messages
+
+# Runs entirely inside this repository. It needs no access to the BRITTLE
+# repository, no OpenAI credential, and no local secrets.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history for the immutability check)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Unit tests
+        run: python3 -m unittest discover -s scripts/tests -v
+
+      - name: Validate repository
+        # Schema compliance, unique IDs, valid references, ticket lane
+        # consistency, valid message status, forbidden extensions, file-size
+        # limits, secret scanning, generated-index consistency.
+        run: python3 scripts/messagesctl.py --repo "$GITHUB_WORKSPACE" validate
+
+      - name: Determine diff base
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "ref=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ github.event.before }}" ] && \
+               git cat-file -e "${{ github.event.before }}^{commit}" 2>/dev/null; then
+            echo "ref=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enforce message immutability
+        # No published message may be modified, deleted or renamed. The single
+        # sanctioned exception is a byte-identical escalation move from
+        # escalations/open/ to escalations/resolved/.
+        if: steps.base.outputs.ref != ''
+        run: |
+          python3 scripts/messagesctl.py --repo "$GITHUB_WORKSPACE" \
+            validate --diff-base "${{ steps.base.outputs.ref }}"

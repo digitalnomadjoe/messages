@@ -1,0 +1,20 @@
+# Nothing generated, cached, or credential-bearing belongs on a public bus.
+__pycache__/
+*.pyc
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+
+# local operator state (locks, spools, lane snapshots, pause marker)
+.messagesctl.lock
+*.local.toml
+config/config.toml
+
+# never, under any circumstance
+*.env
+.env
+*.pem
+*.key
+*_creds
+credentials*

@@ -1,0 +1,13 @@
+[Unit]
+Description=Periodic BRITTLE message bus sync (pull, retry deferred pushes, replay spool)
+Documentation=https://github.com/digitalnomadjoe/messages
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Persistent=true
+Unit=brittle-message-sync.service
+
+[Install]
+WantedBy=timers.target

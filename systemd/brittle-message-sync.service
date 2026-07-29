@@ -1,0 +1,20 @@
+[Unit]
+Description=BRITTLE message bus sync and deferred-push retry
+Documentation=https://github.com/digitalnomadjoe/messages
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/code/messages/scripts/messagesctl.py sync
+WorkingDirectory=%h/code/messages
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brittle-sync
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+# A failed sync is normal when the network is down; the timer retries.
+SuccessExitStatus=0 1

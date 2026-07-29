@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/digitalnomadjoe/messages/protocol/message.schema.json",
+  "title": "BRITTLE bus message frontmatter",
+  "description": "Documentation and editor support. The executable single source of truth is validate_frontmatter() in scripts/messagelib.py; scripts/tests/test_schema_parity.py asserts the two agree.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "kind",
+    "project",
+    "from",
+    "to",
+    "lane",
+    "unit",
+    "created_at",
+    "source_commit",
+    "local_source_path",
+    "local_source_sha256",
+    "in_reply_to",
+    "supersedes",
+    "requires_owner",
+    "confidence",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^BRITTLE-\\d{8}T\\d{6}Z-[0-9a-f]{8}$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["ticket", "report", "review", "receipt", "escalation", "owner_decision"]
+    },
+    "project": { "type": "string", "const": "brittle" },
+    "from": { "type": "string", "minLength": 1 },
+    "to": { "type": "string", "minLength": 1 },
+    "lane": {
+      "type": "string",
+      "enum": ["locomotion", "control", "reviewer", "joe"]
+    },
+    "unit": { "type": ["string", "null"] },
+    "created_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "source_commit": { "type": ["string", "null"], "pattern": "^[0-9a-f]{7,40}$" },
+    "local_source_path": { "type": ["string", "null"] },
+    "local_source_sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+    "in_reply_to": { "type": ["string", "null"], "pattern": "^BRITTLE-\\d{8}T\\d{6}Z-[0-9a-f]{8}$" },
+    "supersedes": { "type": ["string", "null"], "pattern": "^BRITTLE-\\d{8}T\\d{6}Z-[0-9a-f]{8}$" },
+    "requires_owner": { "type": "boolean" },
+    "confidence": { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "status": {
+      "type": "string",
+      "enum": ["open", "claimed", "completed", "blocked", "acknowledged", "superseded", "resolved"]
+    },
+
+    "title": { "type": ["string", "null"] },
+    "receipt_type": {
+      "type": ["string", "null"],
+      "enum": ["claim", "renew", "reclaim", "complete", "block", "reviewer_ack", "escalation_notice", "escalation_resolved", null]
+    },
+    "agent": { "type": ["string", "null"] },
+    "claimed_at": { "type": ["string", "null"] },
+    "lease_expires_at": { "type": ["string", "null"] },
+    "brittle_commit": { "type": ["string", "null"], "pattern": "^[0-9a-f]{7,40}$" },
+    "report_id": { "type": ["string", "null"] },
+    "ticket_id": { "type": ["string", "null"] },
+    "review_of": { "type": ["string", "null"] },
+    "escalation_id": { "type": ["string", "null"] },
+    "decision_id": { "type": ["string", "null"] },
+    "target_lane": { "type": ["string", "null"], "enum": ["locomotion", "control", null] },
+    "reason": { "type": ["string", "null"] },
+    "notification_status": {
+      "type": ["string", "null"],
+      "enum": ["sent", "failed", "unavailable", null]
+    },
+    "notification_detail": { "type": ["string", "null"] },
+    "authorized_action": { "type": ["string", "null"] },
+    "scope": { "type": ["string", "null"] },
+    "expires_at": { "type": ["string", "null"] },
+    "checksum": { "type": ["string", "null"] },
+    "autonomy": { "type": ["string", "null"], "enum": ["paused", "active", null] },
+    "reviewer_model": { "type": ["string", "null"] },
+    "prompt_sha256": { "type": ["string", "null"] },
+    "redacted": { "type": ["boolean", "null"] },
+    "truncated": { "type": ["boolean", "null"] },
+    "mirror_bytes": { "type": ["integer", "null"] },
+    "next_action": { "type": ["string", "null"] }
+  },
+
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "receipt" } } },
+      "then": { "required": ["receipt_type", "in_reply_to"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "report" } } },
+      "then": { "required": ["local_source_path", "local_source_sha256"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "owner_decision" } } },
+      "then": { "required": ["authorized_action", "scope", "checksum"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "escalation" } } },
+      "then": { "properties": { "requires_owner": { "const": true } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "ticket" } } },
+      "then": {
+        "properties": {
+          "lane": { "enum": ["locomotion", "control"] },
+          "status": { "const": "open" }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+# BRITTLE message bus configuration.
+#
+# Install to:  ~/.config/brittle-messages/config.toml   (chmod 600)
+# Override with:  BRITTLE_MESSAGES_CONFIG=/path/to/config.toml
+#
+# NEVER put an API key in this file, in git, in a service file, in a log, in a
+# report, on a command line, or in an escalation message. The key is read from
+# the environment or from a separate 0600 credential file.
+
+[repo]
+path = "/home/robojoe/code/messages"
+brittle_path = "/home/robojoe/code/brittle"
+
+[reviewer]
+# Any OpenAI model that supports strict JSON-schema structured output.
+model = "gpt-4o-2024-08-06"
+prompt_path = "/home/robojoe/code/messages/prompts/brittle-reviewer.md"
+poll_seconds = 20
+minimum_confidence = 0.85
+request_timeout_seconds = 120
+max_report_chars = 24000
+
+[openai]
+# The daemon reads the key from this environment variable...
+api_key_env = "OPENAI_API_KEY"
+# ...or, if that is unset, from this file (must be mode 0600, key only).
+api_key_file = ""
+base_url = "https://api.openai.com/v1"
+
+[notification]
+# Command run when an escalation needs Joe. Five environment variables are
+# exported to it -- no secrets, no arguments:
+#   BRITTLE_ESCALATION_ID, BRITTLE_ESCALATION_SUMMARY,
+#   BRITTLE_ESCALATION_LANE, BRITTLE_ESCALATION_UNIT, BRITTLE_ESCALATION_PATH
+#
+# Leave empty to run without notifications: escalations are still published and
+# pushed, and every receipt records notification_status = "unavailable".
+# Verify any candidate with:  messagesctl notify-test
+command = ""
+timeout_seconds = 20
+
+[claims]
+# Ticket lease. Renew with `messagesctl claim <ID> --agent <lane> --renew`.
+lease_seconds = 2700
+
+[safety]
+# Regexes that mark a report as private. A matching report is NOT mirrored;
+# only a redacted communication summary is published and the full report stays
+# local under rgl/reports/.
+private_patterns = []

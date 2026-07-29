@@ -1,0 +1,25 @@
+[Unit]
+Description=BRITTLE control lane ticket watcher
+Documentation=https://github.com/digitalnomadjoe/messages
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/code/messages/scripts/ticket_watcher.py --lane control
+WorkingDirectory=%h/code/messages
+
+Restart=always
+RestartSec=15
+TimeoutStopSec=45
+KillSignal=SIGTERM
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brittle-control
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

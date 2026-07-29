@@ -1,0 +1,32 @@
+[Unit]
+Description=BRITTLE autonomous message reviewer (OpenAI)
+Documentation=https://github.com/digitalnomadjoe/messages
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/code/messages/scripts/reviewer_daemon.py
+WorkingDirectory=%h/code/messages
+
+# Credentials come from the environment or a 0600 file named in config.toml.
+# Never place a key in this unit -- systemd unit files are world-readable.
+EnvironmentFile=-%h/.config/brittle-messages/reviewer.env
+
+Restart=always
+RestartSec=15
+TimeoutStopSec=45
+KillSignal=SIGTERM
+
+# Concise operational logging only. The daemon never logs report bodies,
+# message contents or credentials.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brittle-reviewer
+
+# Least privilege -- no sudo anywhere in this stack.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
