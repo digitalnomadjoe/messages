@@ -697,6 +697,29 @@ def resolve_api_key(cfg: dict) -> str:
     )
 
 
+def credential_status(cfg: dict) -> dict:
+    """Prove a credential is loaded without exposing it.
+
+    The fingerprint is the first 8 hex characters of sha256(key): not
+    reversible, but stable, so Joe can confirm *which* key is in use. The key
+    itself is never returned, logged, committed or passed on a command line.
+    """
+    env_name = cfg.get("openai", {}).get("api_key_env") or "OPENAI_API_KEY"
+    try:
+        key = resolve_api_key(cfg)
+    except MessageError as exc:
+        return {"loaded": False, "source": None, "fingerprint": None,
+                "detail": str(exc)}
+    source = f"env {env_name}" if os.environ.get(env_name, "").strip() else (
+        f"file {cfg.get('openai', {}).get('api_key_file')}")
+    return {
+        "loaded": True,
+        "source": source,
+        "fingerprint": f"sha256:{sha256_text(key)[:8]}",
+        "detail": "credential resolved",
+    }
+
+
 # --------------------------------------------------------------------------
 # Git repository wrapper
 # --------------------------------------------------------------------------

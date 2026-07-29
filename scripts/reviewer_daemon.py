@@ -608,6 +608,15 @@ def main(argv: list[str] | None = None) -> int:
              daemon.repo.path, cfg["reviewer"].get("model"),
              cfg["reviewer"].get("minimum_confidence"), poll)
 
+    # Confirm the credential is loaded. Logs a non-reversible fingerprint only;
+    # the key never reaches the journal, a message, or a command line.
+    cred = ml.credential_status(cfg)
+    if cred["loaded"]:
+        LOG.info("credential: loaded from %s (%s)", cred["source"], cred["fingerprint"])
+    else:
+        LOG.warning("credential: NOT loaded -- reviews will fail closed (%s)",
+                    cred["detail"])
+
     while True:
         try:
             stats = daemon.run_once()
