@@ -37,6 +37,8 @@ class TestStructuredOutput(unittest.TestCase):
             "summary": "s", "target_lane": "locomotion", "next_action": "n",
             "ticket_title": "t", "ticket_markdown": "m", "requires_owner": False,
             "owner_question": None, "confidence": 0.9, "reasoning_summary": "r",
+            "criterion_status": None, "criterion_evidence": None,
+            "criterion_confidence": None,
         }
         self.assertEqual(rd.validate_review(json.dumps(payload))["confidence"], 0.9)
 
@@ -53,6 +55,8 @@ class TestStructuredOutput(unittest.TestCase):
             "summary": "s", "target_lane": None, "next_action": "n",
             "ticket_title": None, "ticket_markdown": None, "requires_owner": True,
             "owner_question": "q", "confidence": 0.5, "reasoning_summary": "r",
+            "criterion_status": None, "criterion_evidence": None,
+            "criterion_confidence": None,
             "tool_calls": [{"exec": "rm -rf /"}],
         }
         with self.assertRaisesRegex(rd.ReviewerError, "unknown field"):
@@ -63,6 +67,8 @@ class TestStructuredOutput(unittest.TestCase):
             "summary": "s", "target_lane": "perception", "next_action": "n",
             "ticket_title": None, "ticket_markdown": None, "requires_owner": False,
             "owner_question": None, "confidence": 0.9, "reasoning_summary": "r",
+            "criterion_status": None, "criterion_evidence": None,
+            "criterion_confidence": None,
         }
         with self.assertRaisesRegex(rd.ReviewerError, "bad target_lane"):
             rd.validate_review(json.dumps(payload))
@@ -72,6 +78,8 @@ class TestStructuredOutput(unittest.TestCase):
             "summary": "s", "target_lane": None, "next_action": "n",
             "ticket_title": None, "ticket_markdown": None, "requires_owner": False,
             "owner_question": None, "confidence": 4.2, "reasoning_summary": "r",
+            "criterion_status": None, "criterion_evidence": None,
+            "criterion_confidence": None,
         }
         with self.assertRaisesRegex(rd.ReviewerError, "out of range"):
             rd.validate_review(json.dumps(payload))
@@ -80,6 +88,46 @@ class TestStructuredOutput(unittest.TestCase):
         self.assertFalse(rd.REVIEW_SCHEMA["additionalProperties"])
         self.assertEqual(sorted(rd.REVIEW_SCHEMA["required"]),
                          sorted(rd.REVIEW_SCHEMA["properties"]))
+
+
+class TestCriterionFields(unittest.TestCase):
+    """The Telephone criterion trio is part of the strict contract."""
+
+    def payload(self, **over):
+        base = {
+            "summary": "s", "target_lane": "control", "next_action": "n",
+            "ticket_title": "t", "ticket_markdown": "m", "requires_owner": False,
+            "owner_question": None, "confidence": 0.9, "reasoning_summary": "r",
+            "criterion_status": None, "criterion_evidence": None,
+            "criterion_confidence": None,
+        }
+        base.update(over)
+        return json.dumps(base)
+
+    def test_criterion_fields_are_required(self):
+        import json as _j
+        d = _j.loads(self.payload())
+        del d["criterion_status"]
+        with self.assertRaisesRegex(rd.ReviewerError, "missing field"):
+            rd.validate_review(_j.dumps(d))
+
+    def test_valid_criterion_values_accepted(self):
+        for status in ("met", "not_met", "unknown", None):
+            out = rd.validate_review(self.payload(criterion_status=status,
+                                                  criterion_confidence=0.9))
+            self.assertEqual(out["criterion_status"], status)
+
+    def test_bad_criterion_status_rejected(self):
+        with self.assertRaisesRegex(rd.ReviewerError, "bad criterion_status"):
+            rd.validate_review(self.payload(criterion_status="probably"))
+
+    def test_criterion_confidence_range_enforced(self):
+        with self.assertRaisesRegex(rd.ReviewerError, "criterion_confidence out of range"):
+            rd.validate_review(self.payload(criterion_confidence=1.7))
+
+    def test_criterion_evidence_must_be_text(self):
+        with self.assertRaisesRegex(rd.ReviewerError, "criterion_evidence"):
+            rd.validate_review(self.payload(criterion_evidence=42))
 
 
 class TestHardGates(unittest.TestCase):

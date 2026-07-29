@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import messagelib as ml  # noqa: E402
 from messagelib import MessageError  # noqa: E402
 from spend_guard import SpendGuard  # noqa: E402
+import telephone as tp  # noqa: E402
 
 
 # --------------------------------------------------------------------------
@@ -927,6 +928,198 @@ def cmd_notify_test(args) -> int:
     return 0 if status == "sent" else 1
 
 
+
+# --------------------------------------------------------------------------
+# telephone -- bounded autonomous runs
+# --------------------------------------------------------------------------
+
+
+def cmd_telephone_start(args) -> int:
+    cfg = _cfg(args)
+    repo = _repo(cfg)
+
+    max_cycles, criterion, lane = args.max_cycles, args.criterion, args.lane
+    if args.invocation:
+        parsed = tp.parse_invocation(args.invocation)
+        if parsed.get("action") != "start":
+            raise MessageError(
+                f"--invocation parsed as {parsed.get('action')!r}, not a start")
+        max_cycles = parsed["max_cycles"]
+        criterion = parsed.get("criterion") or criterion
+        lane = parsed.get("lane") or lane
+    if not lane:
+        raise MessageError("a lane is required (--lane, or name it in --invocation)")
+    if not max_cycles:
+        raise MessageError("--max-cycles is required (a run is always bounded)")
+
+    with ml.repo_lock(repo.path):
+        repo.pull_ff_only()
+        msgs = ml.load_messages(repo.path)
+        _require_not_paused(msgs, "start a Telephone run")
+        tp.assert_can_start(msgs, lane, args.report, _private(cfg), criterion)
+
+        report = msgs[args.report]
+        fm = ml.base_frontmatter(
+            "telephone_run", sender="joe", to=lane, lane=lane,
+            unit=args.unit or report.get("unit"), status="open",
+            requires_owner=False, in_reply_to=args.report,
+            source_commit=ml.brittle_commit(cfg["repo"]["brittle_path"]),
+        )
+        fm.update({
+            "title": f"Telephone run on {lane} (max {max_cycles} cycles)",
+            "run_id": None, "max_cycles": int(max_cycles),
+            "criterion": criterion, "report_id": args.report,
+        })
+        rel = f"{ml.DIR_TELEPHONE}/{fm['id']}.md"
+        body = (
+            f"# Telephone run\n\n"
+            f"- lane: `{lane}`\n- unit: `{fm['unit'] or '-'}`\n"
+            f"- start report: `{args.report}`\n"
+            f"- maximum cycles: **{max_cycles}** (hard bound, enforced outside the model)\n"
+            f"- stopping criterion: {criterion or '(none -- count-bounded run)'}\n\n"
+            "A cycle completes only when the review of a completion report lands.\n"
+            "A review-only outcome, escalation, blocked ticket, lost claim, owner\n"
+            "gate or spend refusal stops this run instead of starting another cycle.\n"
+        )
+        result = ml.publish(repo, {rel: ml.render_message(fm, body)},
+                            f"telephone(start): {lane} max={max_cycles} [{fm['id']}]",
+                            cfg=cfg)
+
+    _emit(args, {"run_id": fm["id"], "lane": lane, "max_cycles": int(max_cycles),
+                 "criterion": criterion, "start_report": args.report,
+                 **result.as_dict()},
+          f"Telephone run {fm['id']} started on {lane}\n"
+          f"  max cycles : {max_cycles}\n"
+          f"  criterion  : {criterion or '(none)'}\n"
+          f"  start report: {args.report}\n"
+          f"  commit {result.commit[:8]}, pushed={result.pushed}")
+    return 0
+
+
+def _resolve_run(msgs, args):
+    if getattr(args, "run", None):
+        run = msgs.get(args.run)
+        if run is None or run.kind != "telephone_run":
+            raise MessageError(f"{args.run} is not a known Telephone run")
+        return run
+    if getattr(args, "lane", None):
+        run = tp.active_run_for_lane(msgs, args.lane)
+        if run is None:
+            raise MessageError(f"no active Telephone run on lane {args.lane!r}")
+        return run
+    active = [r for r in tp.runs(msgs) if tp.run_state(r, msgs)["status"] == "active"]
+    if not active:
+        raise MessageError("no active Telephone run; pass --run or --lane")
+    if len(active) > 1:
+        raise MessageError(
+            f"{len(active)} active runs; pass --lane or --run: {[r.id for r in active]}")
+    return active[0]
+
+
+def cmd_telephone_status(args) -> int:
+    cfg = _cfg(args)
+    repo = _repo(cfg)
+    msgs = ml.load_messages(repo.path)
+    all_runs = tp.runs(msgs)
+    if not all_runs:
+        _emit(args, {"runs": []}, "no Telephone runs on this bus")
+        return 0
+
+    if getattr(args, "all", False):
+        chosen = all_runs
+    else:
+        try:
+            chosen = [_resolve_run(msgs, args)]
+        except MessageError:
+            chosen = [all_runs[-1]]
+
+    rows = []
+    for run in chosen:
+        st = tp.run_state(run, msgs)
+        ticket = claim = blocker = None
+        for m in sorted(msgs.values(), key=ml.Message.sort_key):
+            if m.kind == "ticket" and m.get("run_id") == run.id:
+                ts = ml.ticket_state(m.id, msgs)
+                ticket = {"id": m.id, "status": ts["status"],
+                          "title": m.get("title")}
+                claim = ts["claim"].id if ts["claim"] else None
+                if ts["status"] == "blocked":
+                    blocker = ts["block"].get("reason") if ts["block"] else "blocked"
+        st.update({"current_ticket": ticket, "current_claim": claim,
+                   "blocker": blocker,
+                   "stop_reason_detail": tp.describe_stop(st["stop_reason"])})
+        rows.append(st)
+
+    if args.json:
+        print(json.dumps(rows, indent=2))
+        return 0
+
+    guard = SpendGuard(cfg).status()
+    for st in rows:
+        print(f"run          : {st['run_id']}  [{st['lane']}/{st['unit'] or '-'}]")
+        print(f"state        : {st['status'].upper()}")
+        print(f"cycles       : {st['cycles_completed']}/{st['max_cycles']} completed"
+              f"   remaining {st['cycles_remaining']}")
+        print(f"criterion    : {st['criterion'] or '(none -- count-bounded)'}")
+        print(f"  latest status : {st['criterion_status'] or '-'}"
+              f"  (confidence {st['criterion_confidence'] if st['criterion_confidence'] is not None else '-'})")
+        t = st["current_ticket"]
+        print(f"current ticket: {t['id'] + '  ' + t['status'] if t else '-'}")
+        print(f"current claim : {st['current_claim'] or '-'}")
+        print(f"blocker      : {st['blocker'] or '-'}")
+        print(f"run API calls: {st['api_calls']}   run spend: ${st['spend_usd']:.6f}")
+        print(f"stop reason  : {st['stop_reason'] or '-'}  ({st['stop_reason_detail']})")
+        print()
+    print(f"spend guard  : {'BLOCKED' if guard['blocked'] else 'OK'}   "
+          f"day ${guard['day_committed_usd']:.4f}/${guard['day_cap_usd']:.2f}   "
+          f"month ${guard['month_committed_usd']:.4f}/${guard['month_cap_usd']:.2f}   "
+          f"calls {guard['calls_today']}/{guard['max_calls_per_day']}")
+    return 0
+
+
+def cmd_telephone_stop(args) -> int:
+    cfg = _cfg(args)
+    repo = _repo(cfg)
+    with ml.repo_lock(repo.path):
+        repo.pull_ff_only()
+        msgs = ml.load_messages(repo.path)
+        run = _resolve_run(msgs, args)
+        st = tp.run_state(run, msgs)
+        if st["status"] != "active":
+            raise MessageError(
+                f"{run.id} is already {st['status']} ({st['stop_reason']})")
+
+        fm = ml.base_frontmatter(
+            "receipt", sender="joe", to=str(run.get("lane")),
+            lane=str(run.get("lane")), unit=run.get("unit"), status="blocked",
+            requires_owner=False, in_reply_to=run.id)
+        fm.update({
+            "receipt_type": "telephone_stop", "agent": "joe", "run_id": run.id,
+            "stop_reason": tp.STOP_MANUAL,
+            "cycles_completed": st["cycles_completed"],
+            "reason": (args.reason or "stopped by the owner")[:200],
+            "api_calls": 0, "spend_usd": 0.0,
+        })
+        body = (
+            f"# Telephone run stopped manually\n\n"
+            f"- run: `{run.id}`\n"
+            f"- cycles completed: {st['cycles_completed']}/{st['max_cycles']}\n"
+            f"- reason: {args.reason or 'stopped by the owner'}\n\n"
+            "No further successor ticket will be issued for this run.\n"
+            "Work already claimed may still be completed or explicitly blocked\n"
+            "through the normal `messagesctl complete` / `messagesctl block` path.\n")
+        rel = f"{ml.DIR_RECEIPTS}/{fm['id']}.md"
+        result = ml.publish(repo, {rel: ml.render_message(fm, body)},
+                            f"telephone(stop): {run.id} manual [{fm['id']}]", cfg=cfg)
+
+    _emit(args, {"run_id": run.id, "receipt_id": fm["id"],
+                 "cycles_completed": st["cycles_completed"], **result.as_dict()},
+          f"Telephone run {run.id} stopped "
+          f"({st['cycles_completed']}/{st['max_cycles']} cycles). "
+          f"Claimed work may still be completed or blocked.")
+    return 0
+
+
 # --------------------------------------------------------------------------
 # argument parsing
 # --------------------------------------------------------------------------
@@ -1026,6 +1219,30 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("notify-test", help="exercise the configured notification command")
     s.add_argument("--summary", default="BRITTLE messages: notification self-test")
     s.set_defaults(func=cmd_notify_test)
+
+    tel = sub.add_parser("telephone", help="bounded autonomous run orchestration")
+    telsub = tel.add_subparsers(dest="telephone_command", required=True)
+
+    s = telsub.add_parser("start", help="start a bounded run")
+    s.add_argument("--lane", choices=ml.AGENT_LANES)
+    s.add_argument("--report", required=True, help="start report message id")
+    s.add_argument("--max-cycles", type=int)
+    s.add_argument("--criterion")
+    s.add_argument("--unit")
+    s.add_argument("--invocation", help='natural language, e.g. "Run Telephone for 10 loops"')
+    s.set_defaults(func=cmd_telephone_start)
+
+    s = telsub.add_parser("status", help="show run status (read-only)")
+    s.add_argument("--lane", choices=ml.AGENT_LANES)
+    s.add_argument("--run")
+    s.add_argument("--all", action="store_true")
+    s.set_defaults(func=cmd_telephone_status)
+
+    s = telsub.add_parser("stop", help="stop a run; claimed work may still finish")
+    s.add_argument("--lane", choices=ml.AGENT_LANES)
+    s.add_argument("--run")
+    s.add_argument("--reason")
+    s.set_defaults(func=cmd_telephone_stop)
 
     return p
 

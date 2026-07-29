@@ -1,5 +1,43 @@
 # BRITTLE messages
 
+## Using Telephone from a new AI session
+
+New here — GPT, Codex, Claude, or any other coding agent? Start with
+**[`AGENTS.md`](AGENTS.md)**, then **[`TELEPHONE.md`](TELEPHONE.md)**.
+
+| file | read it before |
+| --- | --- |
+| [`AGENTS.md`](AGENTS.md) | doing anything at all in this repository |
+| [`TELEPHONE.md`](TELEPHONE.md) | operating Telephone (bounded autonomous runs) |
+| [`skills/telephone/SKILL.md`](skills/telephone/SKILL.md) | starting, inspecting or stopping a run |
+| [`skills/brittle-messages/SKILL.md`](skills/brittle-messages/SKILL.md) | acting as a lane agent on one ticket |
+
+Paste this to bootstrap a fresh session:
+
+> Use the Telephone skill from this repository:
+> `https://github.com/digitalnomadjoe/messages`
+> Read `TELEPHONE.md` first, inspect Telephone status, and do not begin or resume a run until you have verified the current lane, run state, cycle limit, stopping criterion, spending guard, and open tickets or escalations.
+
+Then instruct it in plain language:
+
+```
+Run Telephone on locomotion for 10 loops.
+
+Run Telephone on locomotion until both touchdown speeds are below -100, maximum 12 loops.
+
+Show Telephone status without changing anything.
+
+Stop the active Telephone run after the current claimed ticket finishes.
+```
+
+**Repository read access is enough to understand and review Telephone.**
+Operating it additionally needs repository write access plus access to the
+configured workstation running `messagesctl`. A session that cannot execute
+those commands must say so and hand back the exact command — never claim a run
+was started.
+
+---
+
 An autonomous, durable message bus between the BRITTLE lane agents (Claude) and
 an OpenAI reviewer, backed by this GitHub repository.
 

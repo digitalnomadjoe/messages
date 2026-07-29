@@ -32,7 +32,8 @@ from typing import Any, Iterable, Sequence
 
 PROJECT = "brittle"
 
-KINDS = ("ticket", "report", "review", "receipt", "escalation", "owner_decision")
+KINDS = ("ticket", "report", "review", "receipt", "escalation", "owner_decision",
+         "telephone_run")
 LANES = ("locomotion", "control", "reviewer", "joe")
 AGENT_LANES = ("locomotion", "control")
 STATUSES = (
@@ -53,6 +54,8 @@ RECEIPT_TYPES = (
     "reviewer_ack",
     "escalation_notice",
     "escalation_resolved",
+    "telephone_cycle",
+    "telephone_stop",
 )
 
 PROJECT_ROOT = f"projects/{PROJECT}"
@@ -64,6 +67,7 @@ DIR_ESCALATIONS = f"{PROJECT_ROOT}/escalations"
 DIR_ESC_OPEN = f"{DIR_ESCALATIONS}/open"
 DIR_ESC_RESOLVED = f"{DIR_ESCALATIONS}/resolved"
 DIR_DECISIONS = f"{PROJECT_ROOT}/decisions"
+DIR_TELEPHONE = f"{PROJECT_ROOT}/telephone"
 DIR_STATE = f"{PROJECT_ROOT}/state"
 
 # Directories whose contents are immutable append-only messages.
@@ -74,6 +78,7 @@ MESSAGE_DIRS = (
     DIR_RECEIPTS,
     DIR_ESCALATIONS,
     DIR_DECISIONS,
+    DIR_TELEPHONE,
 )
 
 INDEX_PATH = f"{DIR_STATE}/index.json"
@@ -181,6 +186,17 @@ OPTIONAL_FIELDS = (
     "truncated",
     "mirror_bytes",
     "next_action",
+    # Telephone bounded-run orchestration
+    "run_id",
+    "max_cycles",
+    "criterion",
+    "criterion_status",
+    "criterion_confidence",
+    "cycle_index",
+    "cycles_completed",
+    "stop_reason",
+    "api_calls",
+    "spend_usd",
 )
 
 ALL_FIELDS = REQUIRED_FIELDS + OPTIONAL_FIELDS
@@ -450,6 +466,19 @@ def validate_frontmatter(fm: dict, *, rel_path: str = "<mem>") -> None:
         if fm.get("requires_owner") is not True:
             raise MessageError(where + "escalation must set requires_owner: true")
 
+    if fm["kind"] == "telephone_run":
+        if fm["lane"] not in AGENT_LANES:
+            raise MessageError(where + f"telephone run lane must be one of {AGENT_LANES}")
+        if fm["status"] != "open":
+            raise MessageError(where + "a published telephone run must have status 'open'")
+        mc = fm.get("max_cycles")
+        if not isinstance(mc, int) or isinstance(mc, bool) or mc < 1:
+            raise MessageError(where + f"max_cycles must be a positive integer, got {mc!r}")
+
+    cs = fm.get("criterion_status")
+    if cs is not None and cs not in ("met", "not_met", "unknown"):
+        raise MessageError(where + f"bad criterion_status: {cs!r}")
+
 
 def expected_dir(fm: dict) -> str:
     """Directory a message of this kind must live in."""
@@ -466,6 +495,8 @@ def expected_dir(fm: dict) -> str:
         return DIR_ESC_OPEN
     if kind == "owner_decision":
         return DIR_DECISIONS
+    if kind == "telephone_run":
+        return DIR_TELEPHONE
     raise MessageError(f"no directory for kind {kind!r}")
 
 

@@ -223,6 +223,11 @@ def mock_response(tmp: Path, **overrides) -> str:
         "confidence": 0.93,
         "reasoning_summary": "Single-seed result; a three-seed repeat is the "
                              "standard next step and needs no owner input.",
+        # Telephone criterion fields. Always present -- the schema is strict and
+        # total, so a response missing them is rejected (as it should be).
+        "criterion_status": None,
+        "criterion_evidence": None,
+        "criterion_confidence": None,
     }
     payload.update(overrides)
     path = tmp / f"mock-{ml.secrets.token_hex(4)}.json"

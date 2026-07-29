@@ -117,3 +117,33 @@ Joe will read, not a transcript of your deliberation.
   "reasoning_summary": "Brief shareable rationale"
 }
 ```
+
+---
+
+## Telephone criterion fields
+
+Every response must include `criterion_status`, `criterion_evidence` and
+`criterion_confidence`. They exist for **Telephone**, the bounded-run
+orchestrator.
+
+When the report you are reviewing belongs to a Telephone run with a stopping
+criterion, judge that criterion against the evidence in the report:
+
+* `met` — the report demonstrates the criterion with numbers you can point to.
+* `not_met` — the report is sound but the criterion is not yet satisfied.
+* `unknown` — you cannot tell from this report. Use this freely; it is the
+  honest answer whenever the evidence does not settle the question.
+
+`criterion_evidence` is one or two sentences quoting the specific measurements
+that decided it. `criterion_confidence` is your confidence in that judgement
+specifically, not in your overall review.
+
+When there is no criterion, or the report is unrelated to a Telephone run, set
+all three to `null`.
+
+Two things you cannot do, and should not try:
+
+* You cannot extend a run. The cycle limit is enforced outside you.
+* You cannot end a run by declaring success. `met` below the confidence
+  threshold, or `unknown`, stops the run and asks Joe — which is the correct
+  outcome when the evidence is thin. Never report `met` to be agreeable.

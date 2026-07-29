@@ -34,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import messagelib as ml  # noqa: E402
 from messagelib import MessageError  # noqa: E402
 from spend_guard import SpendGuard, SpendGuardError, SpendLimitExceeded  # noqa: E402
+import telephone as tp  # noqa: E402
 
 LOG = logging.getLogger("brittle-reviewer")
 
@@ -47,7 +48,8 @@ REVIEW_SCHEMA = {
     "required": [
         "summary", "target_lane", "next_action", "ticket_title",
         "ticket_markdown", "requires_owner", "owner_question", "confidence",
-        "reasoning_summary",
+        "reasoning_summary", "criterion_status", "criterion_evidence",
+        "criterion_confidence",
     ],
     "properties": {
         "summary": {"type": "string"},
@@ -59,6 +61,10 @@ REVIEW_SCHEMA = {
         "owner_question": {"type": ["string", "null"]},
         "confidence": {"type": "number"},
         "reasoning_summary": {"type": "string"},
+        "criterion_status": {"type": ["string", "null"],
+                             "enum": ["met", "not_met", "unknown", None]},
+        "criterion_evidence": {"type": ["string", "null"]},
+        "criterion_confidence": {"type": ["number", "null"]},
     },
 }
 
@@ -119,7 +125,8 @@ def _mock_response() -> str | None:
 
 
 def call_model(cfg: dict, system_prompt: str, user_content: str,
-               guard: SpendGuard | None = None) -> str:
+               guard: SpendGuard | None = None,
+               telemetry: dict | None = None) -> str:
     """Return the raw model content string.  Never logs the credential.
 
     Every billable request passes the local spending guard first. A mocked
@@ -209,6 +216,9 @@ def call_model(cfg: dict, system_prompt: str, user_content: str,
                                 int(usage.get("completion_tokens", 0)))
         LOG.info("spend guard: finalized $%.6f actual (reserved $%.6f)",
                  actual / 1_000_000, reservation.reserved_micro / 1_000_000)
+        if telemetry is not None:
+            telemetry["actual_micro"] = actual
+            telemetry["api_calls"] = telemetry.get("api_calls", 0) + 1
 
     try:
         return body["choices"][0]["message"]["content"]
@@ -250,6 +260,17 @@ def validate_review(raw: str) -> dict:
             raise ReviewerError(f"{key} must be a string or null")
     if not isinstance(data["reasoning_summary"], str):
         raise ReviewerError("reasoning_summary must be a string")
+    if data.get("criterion_status") not in (None, "met", "not_met", "unknown"):
+        raise ReviewerError(f"bad criterion_status: {data.get('criterion_status')!r}")
+    cc = data.get("criterion_confidence")
+    if cc is not None:
+        if isinstance(cc, bool) or not isinstance(cc, (int, float)):
+            raise ReviewerError("criterion_confidence must be a number or null")
+        if not (0.0 <= float(cc) <= 1.0):
+            raise ReviewerError(f"criterion_confidence out of range: {cc}")
+    if data.get("criterion_evidence") is not None and \
+            not isinstance(data["criterion_evidence"], str):
+        raise ReviewerError("criterion_evidence must be a string or null")
     return data
 
 
@@ -462,9 +483,38 @@ class ReviewerDaemon:
             f"---\n\n{body}\n"
         )
 
-        raw = call_model(self.cfg, prompt, user_content)
+        telemetry: dict = {}
+        raw = call_model(self.cfg, prompt, user_content, telemetry=telemetry)
         review = validate_review(raw)
         verdict = decide(review, self.cfg)
+
+        # --- Telephone bounded-run arbitration -------------------------
+        # The run's hard bounds are applied here, outside the model. A model
+        # that wants to keep going cannot extend a run past max_cycles, past a
+        # manual stop, or past a criterion it cannot judge confidently.
+        run = tp.run_for_report(report, msgs, str(report.get("lane")))
+        tel = None
+        tel_state = None
+        cycle_closed = False
+        if run is not None:
+            tel_state = tp.run_state(run, msgs)
+            cycle_closed = tp.closes_cycle(report, msgs, run)
+            tel = tp.evaluate(
+                tel_state,
+                verdict_mode=verdict["mode"],
+                criterion_status=review.get("criterion_status"),
+                criterion_confidence=review.get("criterion_confidence"),
+                threshold=verdict["threshold"],
+                cycle_closed=cycle_closed,
+            )
+            if verdict["mode"] == "ticket" and not tel["issue_ticket"]:
+                verdict = dict(verdict)
+                verdict["mode"] = "escalation" if tel["escalate"] else "review_only"
+                verdict["reasons"] = list(verdict["reasons"]) + [
+                    f"telephone {run.id}: {tp.describe_stop(tel['stop_reason'])}"]
+
+        spend_usd = round(telemetry.get("actual_micro", 0) / 1_000_000, 6)
+        api_calls = int(telemetry.get("api_calls", 0))
 
         now = ml.utc_now()
         files: dict[str, str] = {}
@@ -487,7 +537,14 @@ class ReviewerDaemon:
             "next_action": review["next_action"][:200],
             "reviewer_model": str(self.cfg["reviewer"].get("model")),
             "prompt_sha256": prompt_sha,
+            "spend_usd": spend_usd,
         })
+        if run is not None:
+            rfm["run_id"] = run.id
+            rfm["criterion_status"] = review.get("criterion_status")
+            cc = review.get("criterion_confidence")
+            rfm["criterion_confidence"] = (round(float(cc), 3)
+                                           if cc is not None else None)
         rbody = (
             f"# Review of `{report.id}`\n\n"
             f"**Summary.** {review['summary']}\n\n"
@@ -522,6 +579,9 @@ class ReviewerDaemon:
             )
             tfm["title"] = (review.get("ticket_title") or review["next_action"])[:120]
             tfm["next_action"] = review["next_action"][:200]
+            if run is not None:
+                tfm["run_id"] = run.id
+                tfm["cycle_index"] = tel["cycles_after"] + 1
             tbody = (
                 f"# {tfm['title']}\n\n"
                 f"> Issued autonomously by the BRITTLE reviewer from report "
@@ -599,6 +659,61 @@ class ReviewerDaemon:
             f"- confidence: {float(review['confidence']):.2f}\n"
         )
         files[f"{ml.DIR_RECEIPTS}/{afm['id']}.md"] = ml.render_message(afm, abody)
+
+        if run is not None:
+            if cycle_closed:
+                cfm = ml.base_frontmatter(
+                    "receipt", sender="reviewer", to=str(run.get("lane")),
+                    lane=str(run.get("lane")), unit=run.get("unit"),
+                    status="completed", in_reply_to=run.id, now=now)
+                cfm.update({
+                    "receipt_type": "telephone_cycle", "agent": "reviewer",
+                    "run_id": run.id, "cycle_index": tel["cycles_after"],
+                    "report_id": report.id, "review_of": report.id,
+                    "criterion_status": review.get("criterion_status"),
+                    "criterion_confidence": (
+                        round(float(review["criterion_confidence"]), 3)
+                        if review.get("criterion_confidence") is not None else None),
+                    "api_calls": api_calls, "spend_usd": spend_usd,
+                })
+                cbody = (
+                    f"# Telephone cycle {tel['cycles_after']}/{tel_state['max_cycles']}\n\n"
+                    f"- run: `{run.id}`\n- completion report: `{report.id}`\n"
+                    f"- review: `{rfm['id']}`\n"
+                    f"- criterion status: {review.get('criterion_status') or '-'}\n"
+                    f"- this call: {api_calls} API call, ${spend_usd:.6f}\n")
+                files[f"{ml.DIR_RECEIPTS}/{cfm['id']}.md"] = ml.render_message(cfm, cbody)
+
+            if tel["stop"] and tel_state["status"] == "active":
+                sfm = ml.base_frontmatter(
+                    "receipt", sender="reviewer", to=str(run.get("lane")),
+                    lane=str(run.get("lane")), unit=run.get("unit"),
+                    status=("completed" if tel["stop_reason"] in tp.SUCCESS_REASONS
+                            else "blocked"),
+                    requires_owner=bool(tel["escalate"]),
+                    in_reply_to=run.id, now=now)
+                sfm.update({
+                    "receipt_type": "telephone_stop", "agent": "reviewer",
+                    "run_id": run.id, "stop_reason": tel["stop_reason"],
+                    "cycles_completed": tel["cycles_after"],
+                    "criterion_status": review.get("criterion_status"),
+                    "api_calls": 0, "spend_usd": 0.0,
+                })
+                sbody = (
+                    f"# Telephone run stopped\n\n"
+                    f"- run: `{run.id}`\n"
+                    f"- reason: **{tel['stop_reason']}** -- {tp.describe_stop(tel['stop_reason'])}\n"
+                    f"- cycles completed: {tel['cycles_after']}/{tel_state['max_cycles']}\n"
+                    f"- criterion: {run.get('criterion') or '(none)'}\n"
+                    f"- criterion status: {review.get('criterion_status') or '-'}\n\n"
+                    + ("> Reaching the cycle limit is exhaustion, not success.\n"
+                       if tel["stop_reason"] in tp.EXHAUSTION_REASONS else "")
+                    + (f"\n**Evidence.** {review.get('criterion_evidence')}\n"
+                       if review.get("criterion_evidence") else ""))
+                files[f"{ml.DIR_RECEIPTS}/{sfm['id']}.md"] = ml.render_message(sfm, sbody)
+                LOG.info("telephone %s stopped: %s (%d/%d cycles)", run.id,
+                         tel["stop_reason"], tel["cycles_after"],
+                         tel_state["max_cycles"])
 
         result = ml.publish(
             self.repo, files,

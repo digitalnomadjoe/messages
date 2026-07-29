@@ -30,7 +30,7 @@
     },
     "kind": {
       "type": "string",
-      "enum": ["ticket", "report", "review", "receipt", "escalation", "owner_decision"]
+      "enum": ["ticket", "report", "review", "receipt", "escalation", "owner_decision", "telephone_run"]
     },
     "project": { "type": "string", "const": "brittle" },
     "from": { "type": "string", "minLength": 1 },
@@ -59,7 +59,7 @@
     "title": { "type": ["string", "null"] },
     "receipt_type": {
       "type": ["string", "null"],
-      "enum": ["claim", "renew", "reclaim", "complete", "block", "reviewer_ack", "escalation_notice", "escalation_resolved", null]
+      "enum": ["claim", "renew", "reclaim", "complete", "block", "reviewer_ack", "escalation_notice", "escalation_resolved", "telephone_cycle", "telephone_stop", null]
     },
     "agent": { "type": ["string", "null"] },
     "claimed_at": { "type": ["string", "null"] },
@@ -87,7 +87,21 @@
     "redacted": { "type": ["boolean", "null"] },
     "truncated": { "type": ["boolean", "null"] },
     "mirror_bytes": { "type": ["integer", "null"] },
-    "next_action": { "type": ["string", "null"] }
+    "next_action": { "type": ["string", "null"] },
+
+    "run_id": { "type": ["string", "null"] },
+    "max_cycles": { "type": ["integer", "null"], "minimum": 1 },
+    "criterion": { "type": ["string", "null"], "maxLength": 500 },
+    "criterion_status": {
+      "type": ["string", "null"],
+      "enum": ["met", "not_met", "unknown", null]
+    },
+    "criterion_confidence": { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "cycle_index": { "type": ["integer", "null"], "minimum": 0 },
+    "cycles_completed": { "type": ["integer", "null"], "minimum": 0 },
+    "stop_reason": { "type": ["string", "null"] },
+    "api_calls": { "type": ["integer", "null"], "minimum": 0 },
+    "spend_usd": { "type": ["number", "null"], "minimum": 0.0 }
   },
 
   "allOf": [
@@ -106,6 +120,16 @@
     {
       "if": { "properties": { "kind": { "const": "escalation" } } },
       "then": { "properties": { "requires_owner": { "const": true } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "telephone_run" } } },
+      "then": {
+        "required": ["max_cycles"],
+        "properties": {
+          "lane": { "enum": ["locomotion", "control"] },
+          "status": { "const": "open" }
+        }
+      }
     },
     {
       "if": { "properties": { "kind": { "const": "ticket" } } },
