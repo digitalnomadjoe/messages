@@ -697,6 +697,9 @@ class ReviewerDaemon:
                     "run_id": run.id, "stop_reason": tel["stop_reason"],
                     "cycles_completed": tel["cycles_after"],
                     "criterion_status": review.get("criterion_status"),
+                    "criterion_confidence": (
+                        round(float(review["criterion_confidence"]), 3)
+                        if review.get("criterion_confidence") is not None else None),
                     "api_calls": 0, "spend_usd": 0.0,
                 })
                 sbody = (

@@ -557,6 +557,16 @@ class TestStatusOutput(TelephoneBusTestCase):
                       "spend guard"):
             self.assertIn(token, text.lower())
 
+    def test_criterion_confidence_survives_the_stop_receipt(self):
+        _, run_id = self.start_run(max_cycles=3, criterion="service is stable")
+        self.mock(target_lane="control", criterion_status="met",
+                  criterion_confidence=0.9)
+        self.daemon().run_once()
+        st = self.state(run_id)
+        self.assertEqual(st["criterion_status"], "met")
+        self.assertEqual(st["criterion_confidence"], 0.9,
+                         "a later receipt without a confidence must not erase it")
+
     def test_status_after_stop_reports_the_exact_reason(self):
         _, run_id = self.start_run(max_cycles=2)
         self.ctl("telephone", "stop", "--lane", "control", "--reason", "done")

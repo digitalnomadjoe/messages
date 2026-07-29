@@ -170,8 +170,13 @@ def run_state(run, msgs: dict) -> dict:
     latest_criterion = None
     latest_conf = None
     for r in cycles + ([stopped] if stopped else []):
-        if r is not None and r.get("criterion_status"):
+        if r is None:
+            continue
+        if r.get("criterion_status"):
             latest_criterion = r.get("criterion_status")
+        # Only overwrite the confidence when this receipt actually carries one;
+        # a later receipt without it must not erase an earlier measurement.
+        if r.get("criterion_confidence") is not None:
             latest_conf = r.get("criterion_confidence")
 
     completed = len(cycles)
