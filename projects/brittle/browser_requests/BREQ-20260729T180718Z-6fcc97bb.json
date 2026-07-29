@@ -1,0 +1,20 @@
+{
+  "request_id": "BREQ-20260729T180718Z-6fcc97bb",
+  "kind": "review_only",
+  "project": "brittle",
+  "submitted_by": "digitalnomadjoe",
+  "created_at": "2026-07-29T18:07:18.745864Z",
+  "lane": "control",
+  "unit": "CERT-BROWSER-CONTROL",
+  "report_id": "BRITTLE-20260729T180609Z-f2f6b6e0",
+  "idempotency_key": "browser-review-only-cert-browser-control-cycle1-criterion-met",
+  "rationale": "Reviewing the cycle-1 completion report for ticket BRITTLE-20260729T180316Z-cf3fd189. Its measurement satisfies all three acceptance criteria the ticket specified, which is direct evidence for the run's stopping criterion. No further work is warranted, so this is a review_only request: issuing a successor ticket here would be issuing work against an already-satisfied goal, and the bridge's own evaluate() logic refuses a ticket once a criterion resolves to met.",
+  "criterion_status": "met",
+  "criterion_confidence": 0.95,
+  "criterion_evidence": "Completion report BRITTLE-20260729T180609Z-f2f6b6e0 records two systemctl polls, ten seconds apart (2026-07-29T18:05:41Z and 2026-07-29T18:05:51Z): ActiveState=active on both, MainPID identical at 2167369 on both, NRestarts unchanged at 0 on both. All three acceptance criteria from ticket BRITTLE-20260729T180316Z-cf3fd189 (ActiveState=active both polls; identical MainPID; unchanged NRestarts) hold without exception, no retry and no extended wait. This directly demonstrates the run criterion 'control service stable across two polls'.",
+  "payload": {
+    "summary": "Read completion report BRITTLE-20260729T180609Z-f2f6b6e0 for ticket BRITTLE-20260729T180316Z-cf3fd189. It reports brittle-messages-control.service stable across two ten-second-apart polls: ActiveState=active both times, MainPID identical (2167369), NRestarts unchanged (0). All three acceptance criteria the ticket specified are met, with the raw poll table included as evidence.",
+    "next_action": "None. The run's stopping criterion 'control service stable across two polls' is demonstrated by this evidence; the run should stop successfully with no successor ticket.",
+    "confidence": 0.95
+  }
+}
