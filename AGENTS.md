@@ -26,8 +26,8 @@ format, [`README.md`](README.md) for architecture and setup.
 You can run the whole loop without workstation access. See
 [`TELEPHONE.md`](TELEPHONE.md) §3b.
 
-1. read `projects/brittle/state/browser_status.json` — the sanitized status
-   cache, readable straight from GitHub;
+1. read `projects/brittle/state/browser_status.json` **first** — the sanitized
+   status cache, readable straight from GitHub;
 2. commit request files to `projects/brittle/browser_requests/<REQUEST_ID>.json`;
 3. read your `browser_result` receipt to learn whether each request was accepted
    or refused, and why.
@@ -38,6 +38,26 @@ writes no prose of its own.
 
 Request files are **proposals**, not canonical messages and not authorization.
 Never hand-write anything into `projects/brittle/` outside `browser_requests/`.
+
+### Before you submit anything: check readiness
+
+**Browser-mode Telephone does not require workstation access from the browser
+agent. When a workstation-side prerequisite is missing, the agent must provide
+Joe the exact safe local command published in `browser_status.json`, then wait
+for GitHub status to confirm readiness.**
+
+1. Read `browser_status.json` first.
+2. Check `browser_telephone_ready`.
+3. If false, **do not submit a Telephone request**.
+4. Give Joe the entries from `required_local_actions`, in order, each with its
+   `reason`, `command`, `verify_command` and `expected_result`.
+5. Ask him to run them and report back.
+6. Re-read GitHub status and confirm readiness before proceeding.
+7. Never request SSH, passwords, API keys, tokens or terminal access.
+8. Never invent a remediation command that is not published in the status file.
+
+**You cannot run local commands, so never say that you did.** "Please run this
+and tell me when it is done" is the correct and complete answer.
 
 ## Rules
 

@@ -42,6 +42,20 @@ for u in $UNITS; do
 done
 
 systemctl --user daemon-reload
+
+# Restart whatever is already running. A long-lived service keeps executing the
+# code it started with, so adding a protocol field (a new frontmatter key, say)
+# wedges every running service until it is restarted -- it rejects the new
+# messages as invalid on every pass. That failure is silent unless you read the
+# journal, so refreshing units always restarts them.
+for u in $UNITS; do
+  case "$u" in *.timer) continue ;; esac
+  if systemctl --user is-active --quiet "$u"; then
+    systemctl --user restart "$u"
+    echo "restarted $u (was running)"
+  fi
+done
+
 echo
 echo "Units installed to $DEST (as copies)."
 echo "Enable what you want, e.g.:"

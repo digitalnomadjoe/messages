@@ -12,7 +12,15 @@ New here — GPT, Codex, Claude, or any other coding agent? Start with
 | [`skills/telephone/SKILL.md`](skills/telephone/SKILL.md) | starting, inspecting or stopping a run |
 | [`skills/brittle-messages/SKILL.md`](skills/brittle-messages/SKILL.md) | acting as a lane agent on one ticket |
 
-Paste this to bootstrap a fresh session:
+Paste this to bootstrap a **browser-mode** session (GitHub connector only):
+
+> Use browser-mode Telephone from `https://github.com/digitalnomadjoe/messages`. Read `AGENTS.md` and `TELEPHONE.md`, then inspect `projects/brittle/state/browser_status.json`. If `browser_telephone_ready` is false, give me the exact commands from `required_local_actions` to run locally. Do not request workstation access. After status becomes ready, operate Telephone through browser requests only.
+
+If `browser_telephone_ready` is false the agent will hand you the exact local
+commands to run — it will never ask for SSH, a password, a key or terminal
+access, and it cannot run them itself.
+
+Paste this to bootstrap a workstation session:
 
 > Use the Telephone skill from this repository:
 > `https://github.com/digitalnomadjoe/messages`

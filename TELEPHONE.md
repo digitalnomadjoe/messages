@@ -195,6 +195,70 @@ workstation.
 The API reviewer daemon **ignores every report governed by a browser-mode run**,
 so the two modes can never review the same report.
 
+## 3c. Readiness — what to do when the workstation is not set up
+
+**Browser-mode Telephone does not require workstation access from the browser
+agent. When a workstation-side prerequisite is missing, the agent must provide
+Joe the exact safe local command published in `browser_status.json`, then wait
+for GitHub status to confirm readiness.**
+
+`browser_status.json` carries four readiness fields:
+
+```json
+{
+  "browser_telephone_ready": true,
+  "local_action_required": false,
+  "readiness_blockers": [],
+  "required_local_actions": []
+}
+```
+
+When something is missing, each entry in `required_local_actions` looks like:
+
+```json
+{
+  "reason": "Browser bridge is installed but inactive",
+  "command": "systemctl --user enable --now brittle-browser-bridge.service",
+  "verify_command": "systemctl --user status brittle-browser-bridge.service --no-pager",
+  "expected_result": "Active: active (running)"
+}
+```
+
+### The procedure — follow it exactly
+
+1. Read `projects/brittle/state/browser_status.json` **first**, before anything else.
+2. Check `browser_telephone_ready`.
+3. If it is **false**, do **not** submit any Telephone request.
+4. Present Joe the entries from `required_local_actions` **in order**, each with
+   its `reason`, `command`, `verify_command` and `expected_result`.
+5. Ask Joe to run them locally and tell you when he is done.
+6. Re-read the status from GitHub and confirm `browser_telephone_ready` is true
+   before proceeding.
+7. Never request SSH, a password, an API key, a token, or terminal access.
+8. Never invent a remediation command. If a problem has no published action,
+   say so and stop — do not improvise one.
+
+**Never claim you ran a local command.** You cannot. Say "please run this and
+tell me when it is done", then verify through GitHub.
+
+### Readiness is decided mechanically
+
+From: bridge unit installed; bridge enabled and active; bridge heartbeat not
+stale; lane watchers available *and actually advancing*; repository sync healthy
+(no deferred push); browser identity allowlist configured; autonomy not paused.
+
+Commands come from a **closed catalog** in `scripts/browser_bridge.py`. Status
+generation can never assemble a command from observed state, and every published
+action is re-validated before it is written: no shell metacharacters, no
+credentials, no elevation, and only a handful of allowed command forms. If a
+catalog entry were ever tampered with, status generation **fails closed** and
+publishes nothing rather than handing Joe something unsafe to paste.
+
+Note that the status cache is refreshed both by the bridge *and* by the
+independent sync timer — so when the bridge is down, the sync timer is what
+tells you the bridge is down.
+
+
 ---
 
 ## 4. Starting a count-bounded run
@@ -411,7 +475,11 @@ Telephone relaxes none of these:
 
 ## 12. Portable bootstrap prompt
 
-Give a fresh AI session exactly this:
+For a **browser-mode** session, give it exactly this:
+
+> Use browser-mode Telephone from `https://github.com/digitalnomadjoe/messages`. Read `AGENTS.md` and `TELEPHONE.md`, then inspect `projects/brittle/state/browser_status.json`. If `browser_telephone_ready` is false, give me the exact commands from `required_local_actions` to run locally. Do not request workstation access. After status becomes ready, operate Telephone through browser requests only.
+
+For a workstation session:
 
 > Use the Telephone skill from this repository:
 > `https://github.com/digitalnomadjoe/messages`

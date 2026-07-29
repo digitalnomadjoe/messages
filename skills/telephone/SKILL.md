@@ -62,6 +62,21 @@ In browser mode **the browser GPT authors every review and ticket; the
 workstation bridge only validates and publishes exactly what was submitted.**
 The bridge runs no model. Full protocol: [`TELEPHONE.md`](../../TELEPHONE.md) §3b.
 
+## Browser mode: check readiness before submitting anything
+
+> Browser-mode Telephone does not require workstation access from the browser
+> agent. When a workstation-side prerequisite is missing, the agent must provide
+> Joe the exact safe local command published in `browser_status.json`, then wait
+> for GitHub status to confirm readiness.
+
+Read `projects/brittle/state/browser_status.json` first. If
+`browser_telephone_ready` is false, submit **nothing** — relay the entries in
+`required_local_actions` (in order, with `reason`, `command`, `verify_command`,
+`expected_result`), ask Joe to run them, then re-check GitHub status.
+
+Never request SSH, passwords, keys, tokens or terminal access. Never invent a
+command that is not published in the status file. Never claim you ran one.
+
 ## Before starting — always
 
 ```bash

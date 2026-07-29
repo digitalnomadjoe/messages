@@ -726,6 +726,19 @@ def _service_state(unit: str) -> dict:
         return {"active": None, "pid": 0, "restarts": 0}
 
 
+def status_age_seconds(repo: ml.Repo) -> float | None:
+    """How long since the status cache was last committed."""
+    out = repo.git("log", "-1", "--format=%ct", "--", BROWSER_STATUS_PATH,
+                   check=False).strip()
+    if not out:
+        return None
+    try:
+        import time as _t
+        return max(0.0, _t.time() - float(out))
+    except ValueError:
+        return None
+
+
 def build_browser_status(cfg: dict, msgs: dict, repo: ml.Repo,
                          bridge: "BrowserBridge | None" = None) -> dict:
     """Sanitized, rebuildable view for an agent with only GitHub access.
@@ -791,10 +804,13 @@ def build_browser_status(cfg: dict, msgs: dict, repo: ml.Repo,
     except Exception:
         spend = None
 
+    readiness = compute_readiness(cfg, msgs, repo, status_age_seconds(repo))
+
     return {
         "schema": 1,
         "generated_at": ml.iso(now),
         "repo_head": repo.head()[:12],
+        **readiness,
         "telephone_runs": runs,
         "open_tickets_by_lane": idx["open_ticket_by_lane"],
         "active_claims": idx["active_claims"],
@@ -816,6 +832,245 @@ def build_browser_status(cfg: dict, msgs: dict, repo: ml.Repo,
             "Sanitized, rebuildable cache. Canonical truth is the append-only "
             "message history under projects/brittle/. Contains no credentials, "
             "prompts, private report text or proprietary evidence."),
+    }
+
+
+# --------------------------------------------------------------------------
+# Local-action catalog + readiness
+# --------------------------------------------------------------------------
+
+MESSAGES_DIR = "/home/robojoe/code/messages"
+BRIDGE_UNIT = "brittle-browser-bridge.service"
+
+# A CLOSED catalog. Status generation may only ever publish an entry from this
+# table -- it can never assemble a command from observed state. That is the
+# whole point: a browser agent relays these to Joe verbatim, so an attacker who
+# could influence repository content must not be able to influence what Joe is
+# told to run.
+LOCAL_ACTION_CATALOG: dict[str, dict] = {
+    "install_units": {
+        "reason": "Browser bridge unit is not installed on the workstation",
+        "command": f"sh {MESSAGES_DIR}/scripts/install_services.sh",
+        "verify_command": f"systemctl --user status {BRIDGE_UNIT} --no-pager",
+        "expected_result": "Loaded: loaded",
+    },
+    "daemon_reload": {
+        "reason": "systemd has not reloaded since the units changed",
+        "command": "systemctl --user daemon-reload",
+        "verify_command": f"systemctl --user status {BRIDGE_UNIT} --no-pager",
+        "expected_result": "Loaded: loaded",
+    },
+    "enable_bridge": {
+        "reason": "Browser bridge is installed but inactive",
+        "command": f"systemctl --user enable --now {BRIDGE_UNIT}",
+        "verify_command": f"systemctl --user status {BRIDGE_UNIT} --no-pager",
+        "expected_result": "Active: active (running)",
+    },
+    "verify_bridge": {
+        "reason": "Browser bridge heartbeat is stale; confirm the service is healthy",
+        "command": f"systemctl --user status {BRIDGE_UNIT} --no-pager",
+        "verify_command": f"systemctl --user status {BRIDGE_UNIT} --no-pager",
+        "expected_result": "Active: active (running)",
+    },
+    "restart_bridge": {
+        "reason": "Browser bridge is running but its heartbeat has not advanced",
+        "command": f"systemctl --user restart {BRIDGE_UNIT}",
+        "verify_command": f"systemctl --user status {BRIDGE_UNIT} --no-pager",
+        "expected_result": "Active: active (running)",
+    },
+    "sync_repo": {
+        "reason": "Repository sync is unhealthy; a push is still deferred",
+        "command": f"git -C {MESSAGES_DIR} pull --ff-only",
+        "verify_command": f"python3 {MESSAGES_DIR}/scripts/messagesctl.py status",
+        "expected_result": "deferred push   : False",
+    },
+    "enable_lane_control": {
+        "reason": "Control lane watcher is not running",
+        "command": "systemctl --user enable --now brittle-messages-control.service",
+        "verify_command": "systemctl --user status brittle-messages-control.service --no-pager",
+        "expected_result": "Active: active (running)",
+    },
+    "enable_lane_locomotion": {
+        "reason": "Locomotion lane watcher is not running",
+        "command": "systemctl --user enable --now brittle-messages-locomotion.service",
+        "verify_command": "systemctl --user status brittle-messages-locomotion.service --no-pager",
+        "expected_result": "Active: active (running)",
+    },
+    "restart_lane_control": {
+        "reason": "Control lane watcher is running but wedged (its snapshot has stopped advancing)",
+        "command": "systemctl --user restart brittle-messages-control.service",
+        "verify_command": "systemctl --user status brittle-messages-control.service --no-pager",
+        "expected_result": "Active: active (running)",
+    },
+    "restart_lane_locomotion": {
+        "reason": "Locomotion lane watcher is running but wedged (its snapshot has stopped advancing)",
+        "command": "systemctl --user restart brittle-messages-locomotion.service",
+        "verify_command": "systemctl --user status brittle-messages-locomotion.service --no-pager",
+        "expected_result": "Active: active (running)",
+    },
+    "configure_allowlist": {
+        "reason": "No browser identity allowlist is configured, so every browser request is refused",
+        "command": ("edit ~/.config/brittle-messages/config.toml and set "
+                    "[browser] allowed_identities"),
+        "verify_command": f"python3 {MESSAGES_DIR}/scripts/messagesctl.py browser-status",
+        "expected_result": "browser status rebuilt",
+    },
+    "resume_autonomy": {
+        "reason": "Autonomy is paused, so no new Telephone ticket will be issued",
+        "command": f"python3 {MESSAGES_DIR}/scripts/messagesctl.py resume",
+        "verify_command": f"python3 {MESSAGES_DIR}/scripts/messagesctl.py status",
+        "expected_result": "autonomy        : ACTIVE",
+    },
+}
+
+# Only these may begin a published command. Anything else fails closed.
+_ALLOWED_COMMAND_PREFIXES = (
+    "systemctl --user ",
+    f"git -C {MESSAGES_DIR} ",
+    f"sh {MESSAGES_DIR}/scripts/",
+    f"python3 {MESSAGES_DIR}/scripts/",
+    "edit ~/.config/brittle-messages/config.toml",
+)
+
+# Shell metacharacters that would turn a relayed command into something else.
+_UNSAFE_SHELL = re.compile(r"[;&|`$><\
+]|\$\(|&&|\|\|")
+
+_ACTION_FIELDS = ("reason", "command", "verify_command", "expected_result")
+
+
+def assert_action_safe(action: dict, *, key: str = "<inline>") -> None:
+    """Fail closed on anything that is not a known, safe, published action."""
+    missing = [f for f in _ACTION_FIELDS if f not in action]
+    if missing:
+        raise MessageError(f"local action {key!r} missing field(s): {missing}")
+    extra = [f for f in action if f not in _ACTION_FIELDS]
+    if extra:
+        raise MessageError(f"local action {key!r} has unknown field(s): {sorted(extra)}")
+    for field in _ACTION_FIELDS:
+        val = action[field]
+        if not isinstance(val, str) or not val.strip():
+            raise MessageError(f"local action {key!r}: {field} must be a non-empty string")
+    for field in ("command", "verify_command"):
+        cmd = action[field]
+        if _UNSAFE_SHELL.search(cmd):
+            raise MessageError(
+                f"local action {key!r}: {field} contains shell metacharacters; "
+                f"refusing to publish a command Joe might paste: {cmd!r}")
+        if not cmd.startswith(_ALLOWED_COMMAND_PREFIXES):
+            raise MessageError(
+                f"local action {key!r}: {field} is not an allowed command form: {cmd!r}")
+    if ml.scan_secrets(json.dumps(action)):
+        raise MessageError(f"local action {key!r} appears to contain a secret")
+
+
+def local_action(key: str) -> dict:
+    """Fetch a catalog entry, revalidated on every use."""
+    if key not in LOCAL_ACTION_CATALOG:
+        raise MessageError(
+            f"unknown local action {key!r}; commands may only come from the "
+            f"published catalog, never assembled from observed state")
+    action = dict(LOCAL_ACTION_CATALOG[key])
+    assert_action_safe(action, key=key)
+    return action
+
+
+def _unit_installed(unit: str) -> bool:
+    dest = Path(os.environ.get("XDG_CONFIG_HOME") or (Path.home() / ".config"))
+    return (dest / "systemd" / "user" / unit).exists()
+
+
+def _unit_enabled(unit: str) -> bool:
+    try:
+        out = subprocess.run(["systemctl", "--user", "is-enabled", unit],
+                             capture_output=True, text=True, timeout=10)
+        return out.stdout.strip() == "enabled"
+    except Exception:
+        return False
+
+
+def _lane_snapshot_age(lane: str) -> float | None:
+    """Seconds since the lane watcher last wrote its snapshot, or None."""
+    path = ml.state_dir() / f"lane-{lane}.json"
+    if not path.exists():
+        return None
+    try:
+        import time as _t
+        return max(0.0, _t.time() - path.stat().st_mtime)
+    except OSError:
+        return None
+
+
+def compute_readiness(cfg: dict, msgs: dict, repo: ml.Repo,
+                      heartbeat_age_s: float | None) -> dict:
+    """Mechanically decide whether browser-mode Telephone can operate.
+
+    Every blocker maps to a catalog action. Nothing here builds a command.
+    """
+    blockers: list[str] = []
+    actions: list[dict] = []
+
+    def need(key: str, why: str) -> None:
+        blockers.append(why)
+        act = local_action(key)
+        if act not in actions:
+            actions.append(act)
+
+    bridge_installed = _unit_installed(BRIDGE_UNIT)
+    bridge = _service_state(BRIDGE_UNIT)
+
+    if not bridge_installed:
+        need("install_units", "browser bridge unit is not installed")
+        need("daemon_reload", "systemd must reload after installing units")
+        need("enable_bridge", "browser bridge must be enabled and started")
+    elif not bridge["active"]:
+        need("enable_bridge", "browser bridge is installed but not running")
+    else:
+        stale_after = float(cfg.get("browser", {}).get("heartbeat_seconds") or 900) * 3
+        if heartbeat_age_s is not None and heartbeat_age_s > stale_after:
+            need("restart_bridge",
+                 f"browser bridge heartbeat is stale "
+                 f"({int(heartbeat_age_s)}s old, expected under {int(stale_after)}s)")
+        elif not _unit_enabled(BRIDGE_UNIT):
+            need("enable_bridge",
+                 "browser bridge is running but not enabled, so it will not "
+                 "survive a reboot")
+
+    for lane, enable_key, restart_key in (
+            ("control", "enable_lane_control", "restart_lane_control"),
+            ("locomotion", "enable_lane_locomotion", "restart_lane_locomotion")):
+        if not _service_state(f"brittle-messages-{lane}.service")["active"]:
+            need(enable_key, f"{lane} lane watcher is not running")
+        else:
+            # "active" only means the process exists. A watcher that is failing
+            # every pass -- say because a protocol field was added and it is
+            # still running the older code -- looks perfectly healthy to
+            # systemd. Its snapshot file is the real liveness signal.
+            age = _lane_snapshot_age(lane)
+            if age is not None and age > 300:
+                need(restart_key,
+                     f"{lane} lane watcher is active but its snapshot is "
+                     f"{int(age)}s old; it is wedged, not working")
+
+    if (ml.spool_dir() / "pending_push.json").exists():
+        need("sync_repo", "a push is deferred; repository sync is unhealthy")
+
+    if not (cfg.get("browser", {}).get("allowed_identities") or []):
+        need("configure_allowlist",
+             "no browser identity allowlist is configured, so every browser "
+             "request would be refused")
+
+    if ml.autonomy_state(msgs)["paused"]:
+        need("resume_autonomy", "autonomy is paused")
+
+    for act in actions:
+        assert_action_safe(act)
+
+    return {
+        "browser_telephone_ready": not blockers,
+        "local_action_required": bool(actions),
+        "readiness_blockers": blockers,
+        "required_local_actions": actions,
     }
 
 

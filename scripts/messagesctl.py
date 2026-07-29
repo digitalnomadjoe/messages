@@ -183,6 +183,41 @@ def cmd_sync(args) -> int:
             except MessageError as exc:
                 out["errors"].append(f"spool {path.name}: {exc}")
 
+        # Refresh the browser status cache here too. The bridge normally does
+        # it, but when the bridge is stopped the sync timer is the ONLY thing
+        # that can publish "the bridge is stopped" -- otherwise a browser agent
+        # sees a stale ready=true and waits forever.
+        try:
+            payload = bb.build_browser_status(cfg, ml.load_messages(repo.path),
+                                              repo, bb.BrowserBridge(cfg))
+            path = repo.path / bb.BROWSER_STATUS_PATH
+            path.parent.mkdir(parents=True, exist_ok=True)
+            text = json.dumps(payload, indent=2) + "\n"
+            volatile = ("generated_at", "gateway_heartbeat",
+                        "last_successful_sync", "repo_head")
+            prev = None
+            if path.exists():
+                try:
+                    prev = json.loads(path.read_text(encoding="utf-8"))
+                except json.JSONDecodeError:
+                    prev = None
+            changed = prev is None or (
+                {k: v for k, v in prev.items() if k not in volatile}
+                != {k: v for k, v in payload.items() if k not in volatile})
+            if changed:
+                if ml.scan_secrets(text, _private(cfg)):
+                    raise MessageError("browser status failed the secret scan")
+                path.write_text(text, encoding="utf-8")
+                repo.git("add", "--", bb.BROWSER_STATUS_PATH)
+                if repo.git("diff", "--cached", "--name-only").strip():
+                    repo.git("commit", "-m",
+                             "chore(state): refresh browser status", identity=True)
+                    if repo.has_remote():
+                        repo.git_ok("push", "origin", f"HEAD:{repo.branch()}")
+                    out["status_refreshed"] = True
+        except MessageError as exc:
+            out["errors"].append(f"browser status: {exc}")
+
     _emit(args, out,
           f"sync: pulled={out['pulled']} pushed={out['pushed']} "
           f"spool_replayed={out['spool_replayed']} errors={len(out['errors'])}")
