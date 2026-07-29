@@ -54,6 +54,7 @@ RECEIPT_TYPES = (
     "reviewer_ack",
     "escalation_notice",
     "escalation_resolved",
+    "browser_result",
     "telephone_cycle",
     "telephone_stop",
 )
@@ -68,6 +69,9 @@ DIR_ESC_OPEN = f"{DIR_ESCALATIONS}/open"
 DIR_ESC_RESOLVED = f"{DIR_ESCALATIONS}/resolved"
 DIR_DECISIONS = f"{PROJECT_ROOT}/decisions"
 DIR_TELEPHONE = f"{PROJECT_ROOT}/telephone"
+# Browser proposals. Deliberately NOT a message dir: these are requests, not
+# canonical messages, and nothing here authorizes anything by itself.
+DIR_BROWSER_REQUESTS = f"{PROJECT_ROOT}/browser_requests"
 DIR_STATE = f"{PROJECT_ROOT}/state"
 
 # Directories whose contents are immutable append-only messages.
@@ -118,6 +122,7 @@ FORBIDDEN_EXT = {
 }
 
 MAX_MESSAGE_BYTES = 256 * 1024
+MAX_BROWSER_REQUEST_BYTES = 64 * 1024
 MAX_REPO_FILE_BYTES = 512 * 1024
 
 DEFAULT_LEASE_SECONDS = 45 * 60
@@ -197,6 +202,11 @@ OPTIONAL_FIELDS = (
     "stop_reason",
     "api_calls",
     "spend_usd",
+    # Browser-native operation
+    "reviewer_mode",
+    "request_id",
+    "submitted_by",
+    "idempotency_key",
 )
 
 ALL_FIELDS = REQUIRED_FIELDS + OPTIONAL_FIELDS
@@ -436,7 +446,12 @@ def validate_frontmatter(fm: dict, *, rel_path: str = "<mem>") -> None:
         rt = fm.get("receipt_type")
         if rt not in RECEIPT_TYPES:
             raise MessageError(where + f"receipt requires receipt_type in {RECEIPT_TYPES}, got {rt!r}")
-        if fm.get("in_reply_to") is None:
+        if rt == "browser_result":
+            # Answers a browser REQUEST, which is not a bus message and so has
+            # no message id to reply to. It must name the request instead.
+            if fm.get("request_id") is None:
+                raise MessageError(where + "browser_result receipt must set request_id")
+        elif fm.get("in_reply_to") is None:
             raise MessageError(where + "receipt must set in_reply_to")
         if rt in ("claim", "renew", "reclaim"):
             for f in ("agent", "claimed_at", "lease_expires_at", "brittle_commit"):
@@ -474,6 +489,10 @@ def validate_frontmatter(fm: dict, *, rel_path: str = "<mem>") -> None:
         mc = fm.get("max_cycles")
         if not isinstance(mc, int) or isinstance(mc, bool) or mc < 1:
             raise MessageError(where + f"max_cycles must be a positive integer, got {mc!r}")
+
+    rm = fm.get("reviewer_mode")
+    if rm is not None and rm not in ("api", "browser"):
+        raise MessageError(where + f"bad reviewer_mode: {rm!r}")
 
     cs = fm.get("criterion_status")
     if cs is not None and cs not in ("met", "not_met", "unknown"):
@@ -573,6 +592,17 @@ def check_path_policy(rel: str, size: int) -> None:
         raise MessageError(f"path escapes the repository: {rel!r}")
     name = os.path.basename(rel)
     ext = os.path.splitext(name)[1].lower()
+
+    if rel.startswith(DIR_BROWSER_REQUESTS + "/"):
+        if name == ".gitkeep":
+            return
+        if ext != ".json":
+            raise MessageError(f"{rel}: browser requests must be .json")
+        if size > MAX_BROWSER_REQUEST_BYTES:
+            raise MessageError(
+                f"{rel}: {size} bytes exceeds the "
+                f"{MAX_BROWSER_REQUEST_BYTES}-byte browser-request limit")
+        return
 
     in_messages = any(rel.startswith(d + "/") for d in MESSAGE_DIRS)
     if in_messages:
@@ -1087,8 +1117,19 @@ def index_text(index: dict) -> str:
 
 
 def validate_repo(root: str | Path, *, private_patterns: Sequence[str] = (),
-                  check_index: bool = True, now: _dt.datetime | None = None) -> list[str]:
-    """Return a list of problems.  Empty list == valid."""
+                  check_index: bool = True, now: _dt.datetime | None = None,
+                  scan_browser_requests: bool = False) -> list[str]:
+    """Return a list of problems.  Empty list == valid.
+
+    `scan_browser_requests` is False for the publish-time gate on purpose.
+    Browser requests are UNTRUSTED input written by an outside agent. If a bad
+    one could fail whole-repo validation, it would wedge the bridge: publishing
+    the very refusal receipt that answers it would become impossible. So they
+    are quarantined here and scanned by the bridge instead, which refuses them
+    individually. `messagesctl validate` passes True so CI still reports them;
+    the remedy is deleting the offending request file, which is allowed because
+    a request is a proposal, not a canonical message.
+    """
     root = Path(root)
     problems: list[str] = []
 
@@ -1161,6 +1202,8 @@ def validate_repo(root: str | Path, *, private_patterns: Sequence[str] = (),
             continue
         if rel == "scripts/messagelib.py" or rel.startswith("scripts/tests/"):
             continue  # the detector's own corpus
+        if rel.startswith(DIR_BROWSER_REQUESTS + "/") and not scan_browser_requests:
+            continue  # quarantined; the bridge scans and refuses these
         try:
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):

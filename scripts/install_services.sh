@@ -22,6 +22,7 @@ SRC="$(cd "$(dirname "$0")/../systemd" && pwd)"
 DEST="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 
 UNITS="brittle-message-reviewer.service
+brittle-browser-bridge.service
 brittle-messages-locomotion.service
 brittle-messages-control.service
 brittle-message-sync.service

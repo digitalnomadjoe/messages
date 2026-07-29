@@ -368,10 +368,26 @@ class ReviewerDaemon:
     # --- one pass ---------------------------------------------------------
 
     def pending_reports(self, msgs: dict[str, ml.Message]) -> list[ml.Message]:
-        return [
-            m for m in sorted(msgs.values(), key=ml.Message.sort_key)
-            if m.kind == "report" and not ml.reviewer_acked(m.id, msgs)
-        ]
+        """Unreviewed reports this daemon owns.
+
+        Reports governed by a browser-mode Telephone run are excluded outright.
+        Browser mode and API mode must never review the same report, and the
+        cheapest way to guarantee that is for the API side to refuse to see
+        them at all.
+        """
+        out = []
+        for m in sorted(msgs.values(), key=ml.Message.sort_key):
+            if m.kind != "report" or ml.reviewer_acked(m.id, msgs):
+                continue
+            try:
+                run = tp.run_for_report(m, msgs, str(m.get("lane")))
+            except tp.TelephoneError:
+                run = None
+            if run is not None and tp.is_browser_run(run):
+                LOG.debug("skipping %s: browser-mode run %s", m.id, run.id)
+                continue
+            out.append(m)
+        return out
 
     def pending_notices(self, msgs: dict[str, ml.Message]) -> list[ml.Message]:
         """Escalations published without a notification receipt (crash recovery)."""

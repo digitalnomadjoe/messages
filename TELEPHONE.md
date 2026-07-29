@@ -97,6 +97,106 @@ Add `--json` to any command for machine-readable output.
 
 ---
 
+## 3b. Browser mode — operating Telephone with only a GitHub connector
+
+A browser GPT (ChatGPT with a GitHub connector, or any agent that can read and
+write this repository and nothing else) can run the entire loop.
+
+> **The browser GPT authors every review and ticket. The workstation bridge
+> only validates and publishes exactly what the browser GPT submitted.**
+
+The bridge contains no language model. It does not summarise, rewrite, shorten,
+improve or choose. Submitted ticket markdown reaches the bus byte-for-byte or
+the request is refused.
+
+### Who does what
+
+| browser GPT | workstation |
+| --- | --- |
+| Telephone operator | validator |
+| report reviewer | canonical publisher |
+| stopping-criterion judge | lane-agent runtime |
+| successor-ticket author | service/status reporter |
+
+### Reading status with no workstation access
+
+Read **`projects/brittle/state/browser_status.json`** straight from GitHub. It
+is a sanitized, rebuildable cache with every run, its mode, cycles, criterion,
+current ticket/claim/blocker, open tickets and escalations, awaiting reviews,
+service heartbeats, whether API reviewer mode is enabled, spending totals, and
+pending/refused browser requests. It carries no credential, prompt, private
+report text or proprietary evidence.
+
+### Submitting a request
+
+Commit one JSON file to **`projects/brittle/browser_requests/<REQUEST_ID>.json`**.
+The filename must equal the `request_id`.
+
+```json
+{
+  "request_id": "BREQ-20260729T180000Z-1a2b3c4d",
+  "kind": "review_and_ticket",
+  "project": "brittle",
+  "submitted_by": "digitalnomadjoe",
+  "created_at": "2026-07-29T18:00:00.000000Z",
+  "lane": "control",
+  "unit": "CERT-BROWSER",
+  "report_id": "BRITTLE-...",
+  "idempotency_key": "unique-per-intent",
+  "rationale": "public-safe reason for this action",
+  "criterion_status": "not_met",
+  "criterion_confidence": 0.9,
+  "criterion_evidence": "the numbers that decided it",
+  "payload": {
+    "summary": "...",
+    "next_action": "...",
+    "confidence": 0.95,
+    "target_lane": "control",
+    "ticket_title": "...",
+    "ticket_markdown": "## Objective\n...\n## Steps\n...\n## Acceptance\n..."
+  }
+}
+```
+
+Request kinds: `status_request`, `telephone_start`, `telephone_stop`,
+`review_and_ticket`, `review_only`, `criterion_judgement`, `resolve_escalation`.
+
+**These files are proposals. They are not canonical bus messages and they are
+not Guard authorization.** Nothing happens until the bridge validates them.
+
+### What the bridge checks, and how you learn the outcome
+
+Schema, allowlisted identity (**both** the declared `submitted_by` *and* the
+actual commit author), secret scan, lane, ancestry, run state, cycle bound and
+idempotency. Then it publishes canonical messages atomically.
+
+Every request — accepted or refused — gets an immutable `browser_result`
+receipt naming the request and, on refusal, the reason. Poll
+`browser_status.json` (`browser_requests.pending` / `.refused`) or read the
+receipts under `projects/brittle/receipts/`.
+
+`resolve_escalation` is always refused from the browser: browser access grants
+no owner authority. Owner decisions are recorded by the owner on the
+workstation.
+
+### The full browser cycle
+
+1. read `browser_status.json`
+2. submit `telephone_start` with `reviewer_mode: browser` semantics (browser
+   requests always create browser-mode runs)
+3. wait for a report to appear in `reports_awaiting_review`
+4. read it under `projects/brittle/reports/<lane>/`
+5. submit `review_and_ticket` with the exact ticket you want executed
+6. watch the local lane agent claim and complete it (`current_claim`, then a
+   new completion report)
+7. review the completion report, judging the criterion
+8. continue or stop — the cycle bound and criterion rules apply identically
+
+The API reviewer daemon **ignores every report governed by a browser-mode run**,
+so the two modes can never review the same report.
+
+---
+
 ## 4. Starting a count-bounded run
 
 A run always starts from a report that is already on the bus.
@@ -112,6 +212,9 @@ $MSGCTL telephone start --lane control --report <REPORT_ID> --max-cycles 10
 
 `~10 loops`, `about 10 loops` and `10 loops` all mean a **hard maximum of 10**.
 There is no unbounded mode. A request with no bound is refused.
+
+Add `--reviewer-mode browser` to hand reviewing to a browser GPT instead of the
+local OpenAI daemon. Browser requests always create browser-mode runs.
 
 ---
 
@@ -232,6 +335,9 @@ budget with the goal unmet.
 | lane-agent protocol | [`skills/brittle-messages/SKILL.md`](skills/brittle-messages/SKILL.md) |
 | reviewer behaviour | [`skills/brittle-reviewer/SKILL.md`](skills/brittle-reviewer/SKILL.md), [`prompts/brittle-reviewer.md`](prompts/brittle-reviewer.md) |
 | **the CLI** | `scripts/messagesctl.py` |
+| browser bridge | `scripts/browser_bridge.py` |
+| browser status (read this from GitHub) | `projects/brittle/state/browser_status.json` |
+| browser requests | `projects/brittle/browser_requests/` |
 | orchestration logic | `scripts/telephone.py` |
 | spending guard | `scripts/spend_guard.py` |
 | message protocol | [`protocol/PROTOCOL.md`](protocol/PROTOCOL.md) |
@@ -314,6 +420,11 @@ Give a fresh AI session exactly this:
 ### Example instructions
 
 ```
+Use Telephone from https://github.com/digitalnomadjoe/messages.
+Run browser-mode Telephone on locomotion for 10 cycles.
+
+Run browser-mode Telephone until both touchdown speeds are below -100, maximum 12 cycles.
+
 Run Telephone on locomotion for 10 loops.
 
 Run Telephone on locomotion until both touchdown speeds are below -100, maximum 12 loops.

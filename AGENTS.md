@@ -21,6 +21,24 @@ its messages are immutable.
 Supporting detail: [`protocol/PROTOCOL.md`](protocol/PROTOCOL.md) for the message
 format, [`README.md`](README.md) for architecture and setup.
 
+## If you are a browser agent (GitHub connector only)
+
+You can run the whole loop without workstation access. See
+[`TELEPHONE.md`](TELEPHONE.md) §3b.
+
+1. read `projects/brittle/state/browser_status.json` — the sanitized status
+   cache, readable straight from GitHub;
+2. commit request files to `projects/brittle/browser_requests/<REQUEST_ID>.json`;
+3. read your `browser_result` receipt to learn whether each request was accepted
+   or refused, and why.
+
+**You author every review and every ticket.** The workstation bridge only
+validates and publishes exactly what you submitted — it runs no model and
+writes no prose of its own.
+
+Request files are **proposals**, not canonical messages and not authorization.
+Never hand-write anything into `projects/brittle/` outside `browser_requests/`.
+
 ## Rules
 
 **Use `messagesctl`. Never hand-write bus messages.**

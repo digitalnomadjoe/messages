@@ -1,0 +1,28 @@
+[Unit]
+Description=BRITTLE browser-request bridge (validates and publishes browser GPT proposals)
+Documentation=https://github.com/digitalnomadjoe/messages
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/code/messages/scripts/browser_bridge.py
+WorkingDirectory=%h/code/messages
+
+# The bridge calls no language model and needs no API credential. It is
+# deliberately not given one.
+
+Restart=always
+RestartSec=15
+TimeoutStopSec=45
+KillSignal=SIGTERM
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brittle-browser-bridge
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

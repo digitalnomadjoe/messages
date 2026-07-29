@@ -74,3 +74,10 @@ ledger_path = ""
 "gpt-4o-mini-2024-07-18" = 0.60
 "gpt-4.1" = 8.00
 "gpt-4.1-mini" = 1.60
+
+[browser]
+# GitHub identities allowed to submit actionable browser requests. Matched
+# against BOTH the declared submitted_by field AND the actual commit author of
+# the request file. Empty = every browser request is refused (fail closed).
+allowed_identities = ["digitalnomadjoe"]
+poll_seconds = 20

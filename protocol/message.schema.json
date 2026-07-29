@@ -59,7 +59,7 @@
     "title": { "type": ["string", "null"] },
     "receipt_type": {
       "type": ["string", "null"],
-      "enum": ["claim", "renew", "reclaim", "complete", "block", "reviewer_ack", "escalation_notice", "escalation_resolved", "telephone_cycle", "telephone_stop", null]
+      "enum": ["claim", "renew", "reclaim", "complete", "block", "reviewer_ack", "escalation_notice", "escalation_resolved", "browser_result", "telephone_cycle", "telephone_stop", null]
     },
     "agent": { "type": ["string", "null"] },
     "claimed_at": { "type": ["string", "null"] },
@@ -101,7 +101,12 @@
     "cycles_completed": { "type": ["integer", "null"], "minimum": 0 },
     "stop_reason": { "type": ["string", "null"] },
     "api_calls": { "type": ["integer", "null"], "minimum": 0 },
-    "spend_usd": { "type": ["number", "null"], "minimum": 0.0 }
+    "spend_usd": { "type": ["number", "null"], "minimum": 0.0 },
+
+    "reviewer_mode": { "type": ["string", "null"], "enum": ["api", "browser", null] },
+    "request_id": { "type": ["string", "null"], "pattern": "^BREQ-\\d{8}T\\d{6}Z-[0-9a-f]{8}$" },
+    "submitted_by": { "type": ["string", "null"] },
+    "idempotency_key": { "type": ["string", "null"] }
   },
 
   "allOf": [

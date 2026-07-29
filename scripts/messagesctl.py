@@ -24,6 +24,7 @@ import messagelib as ml  # noqa: E402
 from messagelib import MessageError  # noqa: E402
 from spend_guard import SpendGuard  # noqa: E402
 import telephone as tp  # noqa: E402
+import browser_bridge as bb  # noqa: E402
 
 
 # --------------------------------------------------------------------------
@@ -106,7 +107,8 @@ def cmd_validate(args) -> int:
     cfg = _cfg(args)
     repo = _repo(cfg)
     problems = ml.validate_repo(repo.path, private_patterns=_private(cfg),
-                                check_index=not args.no_index_check)
+                                check_index=not args.no_index_check,
+                                scan_browser_requests=True)
     if args.diff_base:
         problems += _diff_immutability(repo, args.diff_base)
     if problems:
@@ -969,6 +971,7 @@ def cmd_telephone_start(args) -> int:
             "title": f"Telephone run on {lane} (max {max_cycles} cycles)",
             "run_id": None, "max_cycles": int(max_cycles),
             "criterion": criterion, "report_id": args.report,
+            "reviewer_mode": args.reviewer_mode,
         })
         rel = f"{ml.DIR_TELEPHONE}/{fm['id']}.md"
         body = (
@@ -976,7 +979,8 @@ def cmd_telephone_start(args) -> int:
             f"- lane: `{lane}`\n- unit: `{fm['unit'] or '-'}`\n"
             f"- start report: `{args.report}`\n"
             f"- maximum cycles: **{max_cycles}** (hard bound, enforced outside the model)\n"
-            f"- stopping criterion: {criterion or '(none -- count-bounded run)'}\n\n"
+            f"- stopping criterion: {criterion or '(none -- count-bounded run)'}\n"
+            f"- reviewer mode: **{args.reviewer_mode}**\n\n"
             "A cycle completes only when the review of a completion report lands.\n"
             "A review-only outcome, escalation, blocked ticket, lost claim, owner\n"
             "gate or spend refusal stops this run instead of starting another cycle.\n"
@@ -1120,6 +1124,33 @@ def cmd_telephone_stop(args) -> int:
     return 0
 
 
+def cmd_browser_status(args) -> int:
+    cfg = _cfg(args)
+    repo = _repo(cfg)
+    with ml.repo_lock(repo.path):
+        msgs = ml.load_messages(repo.path)
+        bridge = bb.BrowserBridge(cfg)
+        payload = bb.build_browser_status(cfg, msgs, repo, bridge)
+        path = repo.path / bb.BROWSER_STATUS_PATH
+        path.parent.mkdir(parents=True, exist_ok=True)
+        text = json.dumps(payload, indent=2) + "\n"
+        findings = ml.scan_secrets(text, _private(cfg))
+        if findings:
+            raise MessageError(f"browser status failed the secret scan: {findings[0]}")
+        path.write_text(text, encoding="utf-8")
+        if args.commit:
+            repo.git("add", "--", bb.BROWSER_STATUS_PATH)
+            if repo.git("diff", "--cached", "--name-only").strip():
+                repo.git("commit", "-m", "chore(state): refresh browser status",
+                         identity=True)
+                if repo.has_remote():
+                    repo.git_ok("push", "origin", f"HEAD:{repo.branch()}")
+    _emit(args, {"path": bb.BROWSER_STATUS_PATH, "runs": len(payload["telephone_runs"])},
+          f"browser status rebuilt: {bb.BROWSER_STATUS_PATH} "
+          f"({len(payload['telephone_runs'])} run(s))")
+    return 0
+
+
 # --------------------------------------------------------------------------
 # argument parsing
 # --------------------------------------------------------------------------
@@ -1212,6 +1243,11 @@ def build_parser() -> argparse.ArgumentParser:
         s = sub.add_parser(name, help=helptext)
         s.set_defaults(func=fn)
 
+    s = sub.add_parser("browser-status",
+                       help="rebuild the sanitized browser status cache")
+    s.add_argument("--commit", action="store_true")
+    s.set_defaults(func=cmd_browser_status)
+
     s = sub.add_parser("tail", help="show the most recent messages")
     s.add_argument("-n", type=int, default=20)
     s.set_defaults(func=cmd_tail)
@@ -1230,6 +1266,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--criterion")
     s.add_argument("--unit")
     s.add_argument("--invocation", help='natural language, e.g. "Run Telephone for 10 loops"')
+    s.add_argument("--reviewer-mode", choices=("api", "browser"), default="api",
+                   help="who reviews: the local OpenAI daemon, or a browser GPT")
     s.set_defaults(func=cmd_telephone_start)
 
     s = telsub.add_parser("status", help="show run status (read-only)")

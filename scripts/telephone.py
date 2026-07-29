@@ -220,6 +220,15 @@ def active_run_for_lane(msgs: dict, lane: str):
     return found[0] if found else None
 
 
+def reviewer_mode(run) -> str:
+    """'api' (default) or 'browser'."""
+    return str(run.get("reviewer_mode") or "api")
+
+
+def is_browser_run(run) -> bool:
+    return reviewer_mode(run) == "browser"
+
+
 def ticket_run_id(ticket) -> str | None:
     return ticket.get("run_id")
 
@@ -314,13 +323,14 @@ def evaluate(state: dict, *, verdict_mode: str, criterion_status: str | None,
     if state["status"] != "active":
         return stop(state["stop_reason"] or STOP_MANUAL)
 
-    # 2. The reviewer produced no executable successor. Never fabricate one.
+    # 2. An owner gate outranks everything below it.
     if verdict_mode == "escalation":
         return stop(STOP_ESCALATED, escalate=True)
-    if verdict_mode == "review_only":
-        return stop(STOP_REVIEW_ONLY)
 
-    # 3. Criterion evaluation, only when a criterion was set.
+    # 3. Criterion evaluation, only when a criterion was set. This runs BEFORE
+    #    the review-only check: "the criterion was met" is a more specific and
+    #    more truthful ending than "no successor was proposed", and a criterion
+    #    judgement legitimately arrives with no ticket attached.
     if state["criterion"]:
         if criterion_status == "met":
             if criterion_confidence is None or criterion_confidence < threshold:
@@ -332,9 +342,17 @@ def evaluate(state: dict, *, verdict_mode: str, criterion_status: str | None,
         if criterion_confidence is not None and criterion_confidence < threshold:
             return stop(STOP_CRITERION_UNKNOWN, escalate=True)
 
-    # 4. The cycle limit stops the run regardless of what the model wants.
+    # 4. The cycle limit stops the run regardless of what the model wants, and
+    #    outranks "no successor proposed": when the budget is gone the run is
+    #    over either way, and the limit is what a reader needs to know. Only a
+    #    met criterion (checked above) outranks it, because that is success
+    #    rather than exhaustion.
     if cycles_after >= max_cycles:
         return stop(STOP_MAX_CYCLES)
+
+    # 5. No executable successor was proposed. Never fabricate one.
+    if verdict_mode == "review_only":
+        return stop(STOP_REVIEW_ONLY)
 
     return {"issue_ticket": True, "stop": False, "stop_reason": None,
             "escalate": False, "cycles_after": cycles_after}

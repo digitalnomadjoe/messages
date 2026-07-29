@@ -48,6 +48,20 @@ the bus.
 "About ten" is never licence to run an eleventh. Every run is bounded; there is
 no unbounded mode, and a request without a bound is refused.
 
+## Two reviewer modes
+
+| mode | who reviews | how to start |
+| --- | --- | --- |
+| `api` (default) | the local OpenAI reviewer daemon | `telephone start --reviewer-mode api` |
+| `browser` | a browser GPT with a GitHub connector | `telephone start --reviewer-mode browser`, or any browser request |
+
+They never overlap: the API daemon ignores every report governed by a
+browser-mode run.
+
+In browser mode **the browser GPT authors every review and ticket; the
+workstation bridge only validates and publishes exactly what was submitted.**
+The bridge runs no model. Full protocol: [`TELEPHONE.md`](../../TELEPHONE.md) §3b.
+
 ## Before starting — always
 
 ```bash

@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "generated_at": "2026-07-29T17:56:23.897193Z",
+  "repo_head": "1741991821ba",
+  "telephone_runs": [
+    {
+      "run_id": "BRITTLE-20260729T171110Z-bc404f06",
+      "lane": "control",
+      "unit": "CERT-TELEPHONE-CONTROL",
+      "reviewer_mode": "api",
+      "state": "completed",
+      "cycles_completed": 1,
+      "max_cycles": 3,
+      "criterion": "control service stable across two polls",
+      "criterion_status": "met",
+      "criterion_confidence": 0.9,
+      "stop_reason": "criterion_met",
+      "stop_reason_detail": "criterion met -- run succeeded",
+      "current_ticket": {
+        "id": "BRITTLE-20260729T171125Z-29bfc7b5",
+        "status": "completed",
+        "title": "Control Service Stability Check"
+      },
+      "current_claim": "BRITTLE-20260729T171138Z-58462361",
+      "blocker": null,
+      "start_report": "BRITTLE-20260729T171107Z-7ec6b6e0",
+      "api_calls": 1,
+      "spend_usd": 0.012205
+    }
+  ],
+  "open_tickets_by_lane": {},
+  "active_claims": {},
+  "open_escalations": [],
+  "reports_awaiting_review": [],
+  "message_counts": {
+    "escalation": 1,
+    "owner_decision": 1,
+    "receipt": 13,
+    "report": 5,
+    "review": 5,
+    "telephone_run": 1,
+    "ticket": 2
+  },
+  "api_reviewer_mode_enabled": false,
+  "services": {
+    "bridge": {
+      "active": false,
+      "pid": 0,
+      "restarts": 0
+    },
+    "api_reviewer": {
+      "active": false,
+      "pid": 0,
+      "restarts": 0
+    },
+    "lane_locomotion": {
+      "active": true,
+      "pid": 2167361,
+      "restarts": 0
+    },
+    "lane_control": {
+      "active": true,
+      "pid": 2167369,
+      "restarts": 0
+    }
+  },
+  "gateway_heartbeat": "2026-07-29T17:56:23.897193Z",
+  "last_successful_sync": "2026-07-29T17:56:23.897193Z",
+  "spending_guard": {
+    "day_committed_usd": 0.052839,
+    "day_cap_usd": 0.5,
+    "day_remaining_usd": 0.447161,
+    "month_committed_usd": 0.052839,
+    "month_cap_usd": 5.0,
+    "month_remaining_usd": 4.947161,
+    "calls_today": 5,
+    "max_calls_per_day": 10,
+    "blocked": false
+  },
+  "browser_requests": {
+    "pending": [],
+    "refused": []
+  },
+  "notes": "Sanitized, rebuildable cache. Canonical truth is the append-only message history under projects/brittle/. Contains no credentials, prompts, private report text or proprietary evidence."
+}
