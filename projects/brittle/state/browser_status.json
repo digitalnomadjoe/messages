@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T18:06:13.376896Z",
-  "repo_head": "59b6b049d0f1",
+  "generated_at": "2026-07-29T18:07:47.744086Z",
+  "repo_head": "d4c7af57dded",
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -32,14 +32,14 @@
       "lane": "control",
       "unit": "CERT-BROWSER-CONTROL",
       "reviewer_mode": "browser",
-      "state": "active",
-      "cycles_completed": 0,
+      "state": "completed",
+      "cycles_completed": 1,
       "max_cycles": 3,
       "criterion": "control service stable across two polls",
-      "criterion_status": null,
-      "criterion_confidence": null,
-      "stop_reason": null,
-      "stop_reason_detail": "still running",
+      "criterion_status": "met",
+      "criterion_confidence": 0.95,
+      "stop_reason": "criterion_met",
+      "stop_reason_detail": "criterion met -- run succeeded",
       "current_ticket": {
         "id": "BRITTLE-20260729T180316Z-cf3fd189",
         "status": "completed",
@@ -49,21 +49,19 @@
       "blocker": null,
       "start_report": "BRITTLE-20260729T175639Z-2a734042",
       "api_calls": 0,
-      "spend_usd": 0
+      "spend_usd": 0.0
     }
   ],
   "open_tickets_by_lane": {},
   "active_claims": {},
   "open_escalations": [],
-  "reports_awaiting_review": [
-    "BRITTLE-20260729T180609Z-f2f6b6e0"
-  ],
+  "reports_awaiting_review": [],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 18,
+    "receipt": 22,
     "report": 7,
-    "review": 6,
+    "review": 7,
     "telephone_run": 2,
     "ticket": 3
   },
@@ -90,8 +88,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T18:06:13.376896Z",
-  "last_successful_sync": "2026-07-29T18:06:13.376896Z",
+  "gateway_heartbeat": "2026-07-29T18:07:47.744086Z",
+  "last_successful_sync": "2026-07-29T18:07:47.744086Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
