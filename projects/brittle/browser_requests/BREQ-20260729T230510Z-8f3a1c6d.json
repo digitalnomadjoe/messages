@@ -1,0 +1,1 @@
+{"request_id":"BREQ-20260729T230510Z-8f3a1c6d","kind":"status_request","project":"brittle","submitted_by":"digitalnomadjoe","created_at":"2026-07-29T23:05:10.000000Z","lane":"control","unit":"CERT-BROWSER-STATUS","idempotency_key":"status-20260729T230510Z-8f3a1c6d","rationale":"Harmless read-only status request. Do not start or modify any Telephone run."}
