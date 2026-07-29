@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T23:47:54.812787Z",
-  "repo_head_at_generation": "043a5c560888",
+  "generated_at": "2026-07-29T23:49:19.020036Z",
+  "repo_head_at_generation": "d47905152e0b",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -68,7 +68,11 @@
       "criterion_confidence": null,
       "stop_reason": null,
       "stop_reason_detail": "still running",
-      "current_ticket": null,
+      "current_ticket": {
+        "id": "BRITTLE-20260729T234917Z-37c7566d",
+        "status": "open",
+        "title": "Read-only two-poll control service check"
+      },
       "current_claim": null,
       "blocker": null,
       "start_report": "BRITTLE-20260729T232216Z-0f9f8bd9",
@@ -76,20 +80,20 @@
       "spend_usd": 0
     }
   ],
-  "open_tickets_by_lane": {},
+  "open_tickets_by_lane": {
+    "control": "BRITTLE-20260729T234917Z-37c7566d"
+  },
   "active_claims": {},
   "open_escalations": [],
-  "reports_awaiting_review": [
-    "BRITTLE-20260729T232216Z-0f9f8bd9"
-  ],
+  "reports_awaiting_review": [],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 25,
+    "receipt": 27,
     "report": 8,
-    "review": 7,
+    "review": 8,
     "telephone_run": 3,
-    "ticket": 3
+    "ticket": 4
   },
   "api_reviewer_mode_enabled": false,
   "services": {
@@ -114,8 +118,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T23:47:54.812787Z",
-  "last_successful_sync": "2026-07-29T23:47:54.812787Z",
+  "gateway_heartbeat": "2026-07-29T23:49:19.020036Z",
+  "last_successful_sync": "2026-07-29T23:49:19.020036Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
@@ -189,6 +193,17 @@
         "canonical_message_ids": [],
         "decided_at": "2026-07-29T23:47:53.334054Z",
         "reason": "not valid JSON: Extra data: line 1 column 1929 (char 1928)"
+      },
+      {
+        "request_id": "BREQ-20260729T234900Z-8c2d4f6a",
+        "status": "accepted",
+        "result_receipt": "BRITTLE-20260729T234917Z-e69e9cc2",
+        "canonical_message_ids": [
+          "BRITTLE-20260729T234917Z-37c7566d",
+          "BRITTLE-20260729T234917Z-4e9dcc4e",
+          "BRITTLE-20260729T234917Z-7847caaa"
+        ],
+        "decided_at": "2026-07-29T23:49:17.468102Z"
       }
     ]
   },
