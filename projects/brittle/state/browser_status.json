@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T18:32:38.692621Z",
-  "repo_head": "bc707df1fe7c",
+  "generated_at": "2026-07-29T18:35:11.876998Z",
+  "repo_head_at_generation": "2ebf8966ba2d",
   "browser_telephone_ready": false,
   "local_action_required": true,
   "readiness_blockers": [
@@ -101,8 +101,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T18:32:38.692621Z",
-  "last_successful_sync": "2026-07-29T18:32:38.692621Z",
+  "gateway_heartbeat": "2026-07-29T18:35:11.876998Z",
+  "last_successful_sync": "2026-07-29T18:35:11.876998Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
@@ -116,7 +116,39 @@
   },
   "browser_requests": {
     "pending": [],
-    "refused": []
+    "refused": [],
+    "recent_results": [
+      {
+        "request_id": "BREQ-20260729T175947Z-5958c2b7",
+        "status": "accepted",
+        "result_receipt": "BRITTLE-20260729T180028Z-79cc0cbe",
+        "canonical_message_ids": [
+          "BRITTLE-20260729T180028Z-7e90a06a"
+        ],
+        "decided_at": "2026-07-29T18:00:28.517639Z"
+      },
+      {
+        "request_id": "BREQ-20260729T180228Z-2a09f618",
+        "status": "accepted",
+        "result_receipt": "BRITTLE-20260729T180316Z-f8e12ade",
+        "canonical_message_ids": [
+          "BRITTLE-20260729T180316Z-9d2ddd2a",
+          "BRITTLE-20260729T180316Z-cf3fd189",
+          "BRITTLE-20260729T180316Z-d6f215b0"
+        ],
+        "decided_at": "2026-07-29T18:03:16.029713Z"
+      },
+      {
+        "request_id": "BREQ-20260729T180718Z-6fcc97bb",
+        "status": "accepted",
+        "result_receipt": "BRITTLE-20260729T180746Z-2b799ce8",
+        "canonical_message_ids": [
+          "BRITTLE-20260729T180746Z-2cb837b8",
+          "BRITTLE-20260729T180746Z-98e2fdb7"
+        ],
+        "decided_at": "2026-07-29T18:07:46.257876Z"
+      }
+    ]
   },
   "notes": "Sanitized, rebuildable cache. Canonical truth is the append-only message history under projects/brittle/. Contains no credentials, prompts, private report text or proprietary evidence."
 }
