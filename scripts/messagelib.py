@@ -589,14 +589,19 @@ def parse_toml(text: str) -> dict:
         if "=" not in line:
             raise MessageError(f"config line {lineno}: expected key = value")
         key, _, raw_val = line.partition("=")
+        key = key.strip()
+        # Quoted keys carry characters a bare key cannot -- model names such as
+        # "gpt-4.1" contain a dot, which would otherwise read as table nesting.
+        if len(key) >= 2 and key[0] == key[-1] and key[0] in ("'", '"'):
+            key = key[1:-1]
         val = raw_val.split(" #")[0].strip() if not raw_val.strip().startswith(('"', "'")) else raw_val.strip()
         if val.startswith("[") and val.endswith("]"):
             inner = val[1:-1].strip()
-            section[key.strip()] = (
+            section[key] = (
                 [_parse_scalar(p) for p in _split_csv(inner)] if inner else []
             )
         else:
-            section[key.strip()] = _parse_scalar(val)
+            section[key] = _parse_scalar(val)
     return data
 
 

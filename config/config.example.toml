@@ -48,3 +48,29 @@ lease_seconds = 2700
 # only a redacted communication summary is published and the full report stays
 # local under rgl/reports/.
 private_patterns = []
+
+[spending]
+# Fail-closed LOCAL hard cap. This is not a billing source of truth; it exists
+# so a runaway loop or retry storm cannot spend more than was agreed, whatever
+# the provider does or does not enforce.
+monthly_cap_usd = 5.00
+daily_cap_usd = 0.50
+max_calls_per_day = 10
+max_completion_tokens = 1000
+# Append-only ledger, mode 0600. Empty = ~/.local/state/brittle-messages/spend_ledger.jsonl
+ledger_path = ""
+
+# Model pricing, USD per 1,000,000 tokens. A model absent from EITHER table is
+# refused rather than guessed. Verify against current OpenAI pricing before
+# relying on these figures.
+[spending.pricing_input_usd_per_1m]
+"gpt-4o-2024-08-06" = 2.50
+"gpt-4o-mini-2024-07-18" = 0.15
+"gpt-4.1" = 2.00
+"gpt-4.1-mini" = 0.40
+
+[spending.pricing_output_usd_per_1m]
+"gpt-4o-2024-08-06" = 10.00
+"gpt-4o-mini-2024-07-18" = 0.60
+"gpt-4.1" = 8.00
+"gpt-4.1-mini" = 1.60

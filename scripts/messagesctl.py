@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import messagelib as ml  # noqa: E402
 from messagelib import MessageError  # noqa: E402
+from spend_guard import SpendGuard  # noqa: E402
 
 
 # --------------------------------------------------------------------------
@@ -823,6 +824,7 @@ def cmd_status(args) -> int:
         m.id for m in sorted(msgs.values(), key=ml.Message.sort_key)
         if m.kind == "report" and not ml.reviewer_acked(m.id, msgs)
     ]
+    spend = SpendGuard(cfg).status()
     payload = {
         "repo": str(repo.path),
         "head": repo.head()[:12],
@@ -836,6 +838,7 @@ def cmd_status(args) -> int:
         "reports_awaiting_review": unreviewed,
         "deferred_push": marker.exists(),
         "spooled_outbox": len(outbox),
+        "spending": spend,
     }
     if args.json:
         print(json.dumps(payload, indent=2))
@@ -848,6 +851,19 @@ def cmd_status(args) -> int:
     print(f"open escalations: {idx['open_escalations'] or '-'}")
     print(f"awaiting review : {unreviewed or '-'}")
     print(f"deferred push   : {payload['deferred_push']}   spooled outbox: {len(outbox)}")
+    print()
+    print(f"spend guard     : {'BLOCKED' if spend['blocked'] else 'OK'}"
+          f"{'  (' + '; '.join(spend['blocked_reasons']) + ')' if spend['blocked'] else ''}")
+    print(f"  day  {spend['utc_day']}  : ${spend['day_committed_usd']:.4f} committed "
+          f"/ ${spend['day_cap_usd']:.2f} cap   remaining ${spend['day_remaining_usd']:.4f}")
+    print(f"  month {spend['utc_month']}    : ${spend['month_committed_usd']:.4f} committed "
+          f"/ ${spend['month_cap_usd']:.2f} cap   remaining ${spend['month_remaining_usd']:.4f}")
+    print(f"  calls today   : {spend['calls_today']}/{spend['max_calls_per_day']}"
+          f"   outstanding: {spend['outstanding_reservations_today']}"
+          f"   max completion tokens: {spend['max_completion_tokens']}")
+    print(f"  priced models : {spend['priced_models'] or '(none — all requests refused)'}")
+    if not spend["healthy"]:
+        print(f"  ledger        : UNHEALTHY — {spend['detail']}")
     return 0
 
 

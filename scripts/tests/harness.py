@@ -94,6 +94,18 @@ class BusTestCase(unittest.TestCase):
             "notification": {"command": "", "timeout_seconds": 5},
             "claims": {"lease_seconds": 2700},
             "safety": {"private_patterns": []},
+            # A properly configured system: the spend guard is armed and priced,
+            # so tests exercise the real gate order rather than tripping over an
+            # unpriced model. Per-test ledger, generous caps.
+            "spending": {
+                "monthly_cap_usd": 100.0,
+                "daily_cap_usd": 100.0,
+                "max_calls_per_day": 1000,
+                "max_completion_tokens": 1000,
+                "ledger_path": str(self.tmp / "spend_ledger.jsonl"),
+                "pricing_input_usd_per_1m": {"test-model": 2.50},
+                "pricing_output_usd_per_1m": {"test-model": 10.00},
+            },
             "_config_path": str(self.tmp / "config.toml"),
         }
 

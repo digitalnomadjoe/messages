@@ -33,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import messagelib as ml  # noqa: E402
 from messagelib import MessageError  # noqa: E402
+from spend_guard import SpendGuard, SpendGuardError, SpendLimitExceeded  # noqa: E402
 
 LOG = logging.getLogger("brittle-reviewer")
 
@@ -117,11 +118,18 @@ def _mock_response() -> str | None:
     return Path(path).read_text(encoding="utf-8")
 
 
-def call_model(cfg: dict, system_prompt: str, user_content: str) -> str:
-    """Return the raw model content string.  Never logs the credential."""
+def call_model(cfg: dict, system_prompt: str, user_content: str,
+               guard: SpendGuard | None = None) -> str:
+    """Return the raw model content string.  Never logs the credential.
+
+    Every billable request passes the local spending guard first. A mocked
+    response short-circuits before any guard interaction, because a call that
+    never touches the network cannot cost anything.
+    """
     mock = _mock_response()
     if mock is not None:
-        LOG.info("using mocked reviewer response (BRITTLE_REVIEWER_MOCK)")
+        LOG.info("using mocked reviewer response (BRITTLE_REVIEWER_MOCK) -- "
+                 "no network, no spend")
         return mock
 
     api_key = ml.resolve_api_key(cfg)  # raises MessageError -> fail closed
@@ -130,12 +138,16 @@ def call_model(cfg: dict, system_prompt: str, user_content: str) -> str:
     model = str(rev.get("model") or "gpt-4o-2024-08-06")
     timeout = float(rev.get("request_timeout_seconds") or 120)
 
+    guard = guard or SpendGuard(cfg)
+    max_out = guard.max_completion_tokens
+
     payload = {
         "model": model,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content},
         ],
+        str(rev.get("max_tokens_field") or "max_tokens"): max_out,
         "response_format": {
             "type": "json_schema",
             "json_schema": {
@@ -145,25 +157,58 @@ def call_model(cfg: dict, system_prompt: str, user_content: str) -> str:
             },
         },
     }
-    req = urllib.request.Request(
-        f"{base.rstrip('/')}/chat/completions",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
-        method="POST",
-    )
+    data = json.dumps(payload).encode("utf-8")
+
+    # Reserve worst-case cost BEFORE the socket is opened. A refusal here
+    # raises and no request is ever made.
+    reservation = guard.reserve(model, len(data), max_output_tokens=max_out)
+    LOG.info("spend guard: reserved $%.6f for one %s call "
+             "(<=%d bytes in, <=%d completion tokens)",
+             reservation.reserved_micro / 1_000_000, model, len(data), max_out)
+
     try:
+        req = urllib.request.Request(
+            f"{base.rstrip('/')}/chat/completions",
+            data=data,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+            method="POST",
+        )
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = _scrub(exc.read().decode("utf-8", errors="replace"))[:400]
+        if 400 <= exc.code < 500:
+            # A 4xx was rejected before inference: definitively not billed.
+            guard.release(reservation, f"http {exc.code}")
+        else:
+            # A 5xx may have been billed. Charge the full reservation.
+            guard.finalize_uncertain(reservation, f"http {exc.code}")
         raise ReviewerError(f"OpenAI HTTP {exc.code}: {detail}") from exc
-    except (urllib.error.URLError, TimeoutError) as exc:
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        # Timed out or connection lost mid-flight: billing outcome unknown.
+        guard.finalize_uncertain(reservation, f"transport: {type(exc).__name__}")
         raise ReviewerError(f"OpenAI transport error: {exc}") from exc
     except json.JSONDecodeError as exc:
+        guard.finalize_uncertain(reservation, "non-JSON response")
         raise ReviewerError(f"OpenAI returned non-JSON: {exc}") from exc
+    except BaseException as exc:
+        # Killed, interrupted, anything else: never leave a reservation open
+        # on a path we control.
+        guard.finalize_uncertain(reservation, f"aborted: {type(exc).__name__}")
+        raise
+
+    usage = body.get("usage") if isinstance(body, dict) else None
+    if not isinstance(usage, dict) or "prompt_tokens" not in usage:
+        guard.finalize_uncertain(reservation, "response carried no usage block")
+    else:
+        actual = guard.finalize(reservation,
+                                int(usage.get("prompt_tokens", 0)),
+                                int(usage.get("completion_tokens", 0)))
+        LOG.info("spend guard: finalized $%.6f actual (reserved $%.6f)",
+                 actual / 1_000_000, reservation.reserved_micro / 1_000_000)
 
     try:
         return body["choices"][0]["message"]["content"]
@@ -358,11 +403,31 @@ class ReviewerDaemon:
                 stats["skipped"] = len(pending)
                 return stats
 
+            # A mocked run makes no network call, so it can cost nothing and is
+            # not gated. Real operation is always gated.
+            guard_status = ({"blocked": False} if os.environ.get("BRITTLE_REVIEWER_MOCK")
+                            else SpendGuard(self.cfg).status())
+            if guard_status["blocked"]:
+                LOG.warning("spend guard BLOCKED (%s) -- leaving %d report(s) "
+                            "queued, unacknowledged",
+                            "; ".join(guard_status["blocked_reasons"]), len(pending))
+                stats["skipped"] = len(pending)
+                stats["spend_blocked"] = guard_status["blocked_reasons"]
+                return stats
+
             for report in pending:
                 try:
                     outcome = self.review_report(report, msgs)
                     stats["reviewed"] += 1
                     stats[outcome["mode"] + "s"] = stats.get(outcome["mode"] + "s", 0) + 1
+                except SpendLimitExceeded as exc:
+                    LOG.warning("spend guard refused the request: %s", exc)
+                    stats["errors"].append(f"{report.id}: spend guard: {exc}")
+                    break  # leave unacknowledged; retry when the cap resets
+                except SpendGuardError as exc:
+                    LOG.error("spend guard fail-closed: %s", exc)
+                    stats["errors"].append(f"{report.id}: spend guard: {exc}")
+                    break
                 except (MessageError, ReviewerError) as exc:
                     LOG.error("review of %s failed: %s", report.id, exc)
                     stats["errors"].append(f"{report.id}: {exc}")
@@ -628,6 +693,16 @@ def main(argv: list[str] | None = None) -> int:
     else:
         LOG.warning("credential: NOT loaded -- reviews will fail closed (%s)",
                     cred["detail"])
+
+    gs = SpendGuard(cfg).status()
+    LOG.info("spend guard: day $%.4f/$%.2f, month $%.4f/$%.2f, calls %d/%d, "
+             "max_completion_tokens=%d, blocked=%s",
+             gs["day_committed_usd"], gs["day_cap_usd"],
+             gs["month_committed_usd"], gs["month_cap_usd"],
+             gs["calls_today"], gs["max_calls_per_day"],
+             gs["max_completion_tokens"], gs["blocked"])
+    if gs["blocked"]:
+        LOG.warning("spend guard blocked: %s", "; ".join(gs["blocked_reasons"]))
 
     while True:
         try:
