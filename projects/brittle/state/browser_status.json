@@ -1,7 +1,11 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T18:23:05.258283Z",
-  "repo_head": "1d73e0391606",
+  "generated_at": "2026-07-29T18:24:21.741847Z",
+  "repo_head": "301e52b4f1e6",
+  "browser_telephone_ready": true,
+  "local_action_required": false,
+  "readiness_blockers": [],
+  "required_local_actions": [],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -79,17 +83,17 @@
     },
     "lane_locomotion": {
       "active": true,
-      "pid": 2167361,
+      "pid": 2659041,
       "restarts": 0
     },
     "lane_control": {
       "active": true,
-      "pid": 2167369,
+      "pid": 2659014,
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T18:23:05.258283Z",
-  "last_successful_sync": "2026-07-29T18:23:05.258283Z",
+  "gateway_heartbeat": "2026-07-29T18:24:21.741847Z",
+  "last_successful_sync": "2026-07-29T18:24:21.741847Z",
   "spending_guard": {
     "day_committed_usd": 0.052839,
     "day_cap_usd": 0.5,
