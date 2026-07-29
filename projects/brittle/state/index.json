@@ -5,14 +5,16 @@
   },
   "open_ticket_by_lane": {},
   "active_claims": {},
-  "open_escalations": [],
-  "reviewer_cursor": null,
+  "open_escalations": [
+    "BRITTLE-20260729T134958Z-2d381471"
+  ],
+  "reviewer_cursor": "BRITTLE-20260729T051155Z-44221a2f",
   "counts": {
-    "escalation": 0,
+    "escalation": 1,
     "owner_decision": 0,
-    "receipt": 0,
+    "receipt": 1,
     "report": 1,
-    "review": 0,
+    "review": 1,
     "ticket": 0
   }
 }
