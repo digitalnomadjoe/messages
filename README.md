@@ -126,21 +126,26 @@ claims before working, and completes with `publish-report` + `complete`.
 ### 4. Services
 
 ```bash
-mkdir -p ~/.config/systemd/user
-for u in brittle-message-reviewer.service \
-         brittle-messages-locomotion.service \
-         brittle-messages-control.service \
-         brittle-message-sync.service \
-         brittle-message-sync.timer; do
-  ln -sfn ~/code/messages/systemd/$u ~/.config/systemd/user/$u
-done
-systemctl --user daemon-reload
-systemctl --user enable --now brittle-message-reviewer.service
+sh ~/code/messages/scripts/install_services.sh
 systemctl --user enable --now brittle-messages-locomotion.service
 systemctl --user enable --now brittle-messages-control.service
 systemctl --user enable --now brittle-message-sync.timer
+systemctl --user enable --now brittle-message-reviewer.service   # billable — see below
 loginctl enable-linger "$USER"   # survive logout
 ```
+
+Re-run `install_services.sh` after editing anything under `systemd/`.
+
+> **Do not symlink the units into `~/.config/systemd/user/`.** When a unit file
+> in the search path is itself a symlink, `systemctl --user disable <unit>`
+> removes that symlink along with the `wants/` entry. The unit then disappears:
+> a later `enable --now` fails with "Unit ... could not be found", and a plain
+> `restart` silently leaves the service inactive. `install_services.sh` copies
+> instead, which makes `disable` safe and reversible.
+
+The reviewer is the only unit that spends money. It is gated by the local
+spending guard (see below), but if you want it off entirely,
+`systemctl --user disable --now brittle-message-reviewer.service` is now safe.
 
 No sudo anywhere in this stack.
 
