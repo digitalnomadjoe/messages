@@ -32,10 +32,27 @@ its messages are immutable.
 Supporting detail: [`protocol/PROTOCOL.md`](protocol/PROTOCOL.md) for the message
 format, [`README.md`](README.md) for architecture and setup.
 
-## If you are a browser agent (GitHub connector only)
+## If you are a browser agent
 
-You can run the whole loop without workstation access. See
-[`TELEPHONE.md`](TELEPHONE.md) §3b.
+> ### ⚠ The standard ChatGPT GitHub connector cannot operate Telephone
+>
+> It is **read-only**. Tested twice against this repository: reads succeed,
+> writes return **HTTP 403**. It cannot submit a Telephone request.
+>
+> * Repository read access — via the connector or any git client — is enough to
+>   **inspect** Telephone: status, reports, run history, message provenance.
+> * **Operating** Telephone from a browser requires the private **Telephone
+>   custom GPT Action** ([`actions/TELEPHONE_GPT_SETUP.md`](actions/TELEPHONE_GPT_SETUP.md)).
+>
+> Do **not** suggest reconnecting GitHub, changing connector or app
+> permissions, or granting workstation access — none of those make the
+> connector writable. And do **not** conclude the transport works because some
+> other GitHub client (a CLI, a script) could write; the question is whether
+> *this session's* transport can.
+
+You can run the whole loop without workstation access **once the Action is
+configured**. See [`TELEPHONE.md`](TELEPHONE.md) §3b and
+[`actions/TELEPHONE_GPT_SETUP.md`](actions/TELEPHONE_GPT_SETUP.md).
 
 1. read `projects/brittle/state/browser_status.json` **first** — the sanitized
    status cache, readable straight from GitHub;
@@ -225,8 +242,25 @@ Add `--json` to any command for machine-readable output.
 
 ## 3b. Browser mode — operating Telephone with only a GitHub connector
 
-A browser GPT (ChatGPT with a GitHub connector, or any agent that can read and
-write this repository and nothing else) can run the entire loop.
+A browser GPT can run the entire loop — **through the private Telephone custom
+GPT Action**, not through the standard GitHub connector.
+
+> ### ⚠ The standard ChatGPT GitHub connector cannot operate Telephone
+>
+> It is **read-only**. Tested twice against this repository: reads succeed,
+> writes return **HTTP 403**. It cannot submit a Telephone request.
+>
+> * Repository read access — via the connector or any git client — is enough to
+>   **inspect** Telephone: status, reports, run history, message provenance.
+> * **Operating** Telephone from a browser requires the private **Telephone
+>   custom GPT Action** ([`actions/TELEPHONE_GPT_SETUP.md`](actions/TELEPHONE_GPT_SETUP.md)).
+>
+> Do **not** suggest reconnecting GitHub, changing connector or app
+> permissions, or granting workstation access — none of those make the
+> connector writable. And do **not** conclude the transport works because some
+> other GitHub client (a CLI, a script) could write; the question is whether
+> *this session's* transport can.
+
 
 > **The browser GPT authors every review and ticket. The workstation bridge
 > only validates and publishes exactly what the browser GPT submitted.**
@@ -255,7 +289,12 @@ report text or proprietary evidence.
 
 ### Submitting a request
 
-Commit one JSON file to **`projects/brittle/browser_requests/<REQUEST_ID>.json`**.
+Via the Action's `submitTelephoneRequest` operation, which creates one JSON file
+under `projects/brittle/browser_requests/` and can write nowhere else. The five
+Action operations are `getTelephoneInstructions`, `getTelephoneStatus`,
+`getTelephoneReport`, `submitTelephoneRequest` and `getTelephoneRequestResult`.
+
+Equivalently, for a client that genuinely has write access, commit one JSON file to **`projects/brittle/browser_requests/<REQUEST_ID>.json`**.
 The filename must equal the `request_id`.
 
 ```json
@@ -527,6 +566,10 @@ budget with the goal unmet.
 | **the CLI** | `scripts/messagesctl.py` |
 | browser bridge | `scripts/browser_bridge.py` |
 | browser status (read this from GitHub) | `projects/brittle/state/browser_status.json` |
+| **GPT Action schema** | `actions/telephone-action.openapi.yaml` |
+| **GPT setup guide** | `actions/TELEPHONE_GPT_SETUP.md` |
+| combined instructions (Action reads this) | `projects/brittle/state/telephone_instructions.md` |
+| per-request results (Action reads these) | `projects/brittle/state/browser_results/` |
 | browser requests | `projects/brittle/browser_requests/` |
 | orchestration logic | `scripts/telephone.py` |
 | spending guard | `scripts/spend_guard.py` |
@@ -715,7 +758,12 @@ no unbounded mode, and a request without a bound is refused.
 | mode | who reviews | how to start |
 | --- | --- | --- |
 | `api` (default) | the local OpenAI reviewer daemon | `telephone start --reviewer-mode api` |
-| `browser` | a browser GPT with a GitHub connector | `telephone start --reviewer-mode browser`, or any browser request |
+| `browser` | a browser GPT via the private Telephone GPT **Action** | `telephone start --reviewer-mode browser`, or any browser request |
+
+⚠ The standard ChatGPT GitHub **connector is read-only** (writes return 403) and
+cannot operate Telephone. Read access is enough to inspect it; operating it
+needs the custom GPT Action — see `actions/TELEPHONE_GPT_SETUP.md`. Never
+suggest reconnecting GitHub or changing app permissions to fix this.
 
 They never overlap: the API daemon ignores every report governed by a
 browser-mode run.
