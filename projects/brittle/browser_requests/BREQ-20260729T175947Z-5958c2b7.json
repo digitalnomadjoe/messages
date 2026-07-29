@@ -1,0 +1,14 @@
+{
+  "request_id": "BREQ-20260729T175947Z-5958c2b7",
+  "kind": "telephone_start",
+  "project": "brittle",
+  "submitted_by": "digitalnomadjoe",
+  "created_at": "2026-07-29T17:59:47.788533Z",
+  "lane": "control",
+  "unit": "CERT-BROWSER-CONTROL",
+  "report_id": "BRITTLE-20260729T175639Z-2a734042",
+  "idempotency_key": "browser-telephone-start-control-cert-browser-control-3cyc",
+  "rationale": "Owner asked for browser-mode Telephone on the control lane, bounded to 3 cycles, until the control bus service is stable across two polls. The synthetic probe report for CERT-BROWSER-CONTROL is already on the bus and unreviewed; this starts a count-and-criterion-bounded run from it under browser reviewer mode.",
+  "max_cycles": 3,
+  "criterion": "control service stable across two polls"
+}
