@@ -1,22 +1,53 @@
+# Telephone — Custom GPT Action schema
+#
+# ChatGPT's GPT builder enforces a 300-character limit on operation
+# descriptions, so the design rationale lives in these YAML comments rather than
+# in the document. Comments are not part of the parsed schema and cost nothing
+# against the UI limits.
+#
+# WHY THIS EXISTS
+#   The standard ChatGPT GitHub connector is READ-ONLY: repository writes return
+#   HTTP 403 (tested twice). It can inspect Telephone but cannot submit a
+#   request, so it cannot operate Telephone. This action is the only browser
+#   write path.
+#
+# BLAST RADIUS
+#   Five operations and nothing else. Exactly one write, create-only, into
+#   projects/brittle/browser_requests/. There is deliberately:
+#     - no generic path parameter anywhere;
+#     - no generic file write;
+#     - no way to write a canonical bus message;
+#     - no issue, pull-request, workflow, dispatch, hook, collaborator, git-ref
+#       or git-blob operation;
+#     - no shell;
+#     - no owner-decision path (resolve_escalation is refused by the bridge).
+#
+#   Four of the five operations read fixed constant paths. The two that take
+#   input accept only anchored ID patterns and a two-value lane enum, so no
+#   input can traverse out of its directory.
+#
+# PROPOSALS, NOT MESSAGES
+#   A submitted file is a proposal. It is not a canonical bus message and it
+#   authorizes nothing. The workstation bridge validates it and either publishes
+#   canonical messages exactly as submitted -- ticket markdown byte-for-byte --
+#   or refuses it with a published reason. The bridge runs no language model.
+#
+# THE sha FIELD
+#   Omit it. There is no update path, so GitHub rejects a duplicate request ID
+#   (422) rather than overwriting an existing request.
+#
+# Setup, token scope and testing: actions/TELEPHONE_GPT_SETUP.md
+
 openapi: 3.1.0
 
 info:
   title: Telephone
   description: >-
-    Narrowly scoped transport for browser-native Telephone on
-    digitalnomadjoe/messages.
-
-    This action exists because the standard ChatGPT GitHub connector is
-    READ-ONLY: repository writes return HTTP 403, so it cannot submit a
-    Telephone request and cannot operate Telephone.
-
-    Five operations, and nothing else. There is deliberately no generic path
-    parameter, no generic file write, no issue or pull-request operation, no
-    workflow trigger and no way to write a canonical bus message. Four of the
-    five read fixed constant paths. The two operations that take parameters
-    accept only pattern-constrained IDs and a two-value lane enum, so no input
-    can traverse out of its directory.
-  version: 1.1.0
+    Narrow transport for browser-native Telephone on digitalnomadjoe/messages.
+    The standard ChatGPT GitHub connector is read-only, so this action is the
+    only browser write path. Five operations; exactly one create-only write,
+    under projects/brittle/browser_requests/.
+  version: 1.2.0
 
 servers:
   - url: https://api.github.com
@@ -29,9 +60,9 @@ paths:
       operationId: getTelephoneInstructions
       summary: Read the combined Telephone operating instructions.
       description: >-
-        Returns AGENTS.md, TELEPHONE.md and skills/telephone/SKILL.md combined
-        into one generated file. Read this before doing anything else. Fixed
-        path; takes no parameters.
+        Read the canonical Telephone guides, merged into one generated file.
+        Call this before anything else and follow what it says. Fixed path, no
+        parameters.
       responses:
         "200":
           description: Combined instructions.
@@ -40,16 +71,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/FileContent"
         "404":
-          description: Not generated yet; ask Joe to run the local sync command.
+          description: Not generated yet. Ask Joe to run the local sync command.
 
   /repos/digitalnomadjoe/messages/contents/projects/brittle/state/browser_status.json:
     get:
       operationId: getTelephoneStatus
       summary: Read Telephone status and workstation readiness.
       description: >-
-        Sanitized status cache. Read this FIRST and on every poll. If
-        browser_telephone_ready is false, submit nothing and relay
-        required_local_actions to Joe verbatim. Fixed path; no parameters.
+        Read the sanitized status cache. Call this first and on every poll. If
+        browser_telephone_ready is false, submit nothing: relay
+        required_local_actions to Joe verbatim, then re-check. Fixed path, no
+        parameters.
       responses:
         "200":
           description: Status cache.
@@ -63,8 +95,8 @@ paths:
       operationId: getTelephoneReport
       summary: Read one report from a validated lane path.
       description: >-
-        Reads a single mirrored report. The lane is a two-value enum and the
-        report ID is pattern-constrained, so this cannot address any other file.
+        Read a single mirrored report. The lane is a two-value enum and the
+        report ID is pattern-constrained, so no other file can be addressed.
       parameters:
         - name: lane
           in: path
@@ -93,10 +125,11 @@ paths:
   /repos/digitalnomadjoe/messages/contents/projects/brittle/state/browser_results/{requestId}.json:
     get:
       operationId: getTelephoneRequestResult
-      summary: Get the accepted/refused result for one submitted request.
+      summary: Get the result for one submitted request.
       description: >-
-        Returns the bridge's decision for a request. A 404 means the bridge has
-        not processed it yet - poll again; it runs roughly every 20 seconds.
+        Get the bridge's accepted or refused decision for a request you
+        submitted. A 404 means it has not been processed yet, so poll again;
+        the bridge runs about every 20 seconds.
       parameters:
         - name: requestId
           in: path
@@ -121,22 +154,15 @@ paths:
       operationId: submitTelephoneRequest
       summary: Submit exactly one Telephone request.
       description: >-
-        Creates ONE new file under projects/brittle/browser_requests/. This is
-        the only write this action can perform, and the only directory it can
-        write to. The file is a PROPOSAL: it is not a canonical bus message and
-        it authorizes nothing. The workstation bridge validates it and either
-        publishes canonical messages exactly as submitted, or refuses it with a
-        published reason.
-
-        Omit `sha`; there is no update path, so an existing request ID is
-        rejected by GitHub rather than overwritten.
+        Create one request file under projects/brittle/browser_requests/. This
+        is the only write available. The file is a proposal: it is not a
+        canonical message and authorizes nothing. The bridge validates it, then
+        publishes exactly what was submitted or refuses it with a reason.
       parameters:
         - name: requestId
           in: path
           required: true
-          description: >-
-            Request ID. Must equal the request_id inside the file, and must
-            match BREQ-<UTC>-<8 hex>.
+          description: Request ID. Must equal the request_id inside the file.
           schema:
             type: string
             pattern: "^BREQ-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$"
@@ -148,9 +174,9 @@ paths:
               $ref: "#/components/schemas/CreateFile"
       responses:
         "201":
-          description: Request submitted. Poll getTelephoneRequestResult.
+          description: Submitted. Poll getTelephoneRequestResult.
         "422":
-          description: A request with that ID already exists. Mint a new ID.
+          description: That request ID already exists. Mint a new one.
 
 components:
   securitySchemes:
@@ -158,15 +184,15 @@ components:
       type: http
       scheme: bearer
       description: >-
-        Fine-grained GitHub personal access token, scoped to
-        digitalnomadjoe/messages with Contents read/write ONLY, short
-        expiration. Stored solely as the private GPT Action API key. It is never
-        committed, logged, echoed into chat, or passed as an action parameter.
+        Fine-grained GitHub token scoped to digitalnomadjoe/messages with
+        Contents read/write only and a short expiration. Stored only as the
+        private GPT Action API key; never committed, logged, echoed, or passed
+        as a parameter.
 
   schemas:
     FileContent:
       type: object
-      description: GitHub Contents API response. `content` is base64.
+      description: GitHub Contents API response. The content field is base64.
       properties:
         name: { type: string }
         path: { type: string }
@@ -180,6 +206,9 @@ components:
 
     CreateFile:
       type: object
+      description: >-
+        New-file body for the GitHub Contents API. Omit sha: there is no update
+        path, so a duplicate request ID is rejected rather than overwritten.
       required: [message, content]
       properties:
         message:
@@ -189,11 +218,10 @@ components:
         content:
           type: string
           description: >-
-            Base64-encoded JSON request body. Must contain request_id, kind,
-            project, submitted_by, created_at, lane, unit, idempotency_key and
-            rationale, plus the fields the chosen kind requires. Ticket markdown
-            is published byte-for-byte, so write it exactly as you want it
-            executed.
+            Base64-encoded JSON request body. Include request_id, kind, project,
+            submitted_by, created_at, lane, unit, idempotency_key and rationale,
+            plus the fields the chosen kind requires. Ticket markdown is
+            published byte-for-byte.
 
 security:
   - githubFineGrainedToken: []

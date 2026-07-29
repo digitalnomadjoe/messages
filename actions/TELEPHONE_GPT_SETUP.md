@@ -150,6 +150,23 @@ wrong repository. **404** on `getTelephoneRequestResult` is normal until the
 bridge runs. **422** on submit means that request ID already exists — mint a
 new one.
 
+### If the schema will not import
+
+The builder enforces a **300-character limit on operation descriptions** and
+reports it as, for example:
+
+```
+submitTelephoneRequest.description has length 482 exceeding limit of 300
+```
+
+The schema in this repo is within that limit everywhere, and a test
+(`scripts/tests/test_action_transport.py::TestUiDescriptionLimits`) fails the
+build if any description or summary in the document grows past it. If you hit
+this error, you are importing an older copy — re-import from `main`.
+
+Design rationale lives in YAML comments at the top of the schema rather than in
+`description` fields, precisely so it cannot push a description over the limit.
+
 ## 6. Keep it private
 
 **Save → Sharing: `Only me`.** Do not publish it and do not share a link. The

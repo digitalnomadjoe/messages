@@ -150,6 +150,111 @@ class TestSchemaStructure(unittest.TestCase):
                 self.assertNotIn("key", param["name"].lower(), oid)
 
 
+# ChatGPT's GPT builder rejected submitTelephoneRequest with:
+#   "description has length 482 exceeding limit of 300"
+# 300 is the one limit the builder actually reported. The per-field limits for
+# parameters, schemas and security schemes are not documented, so the same
+# strictest-observed limit is applied uniformly across the whole document rather
+# than guessing a looser one per field.
+UI_DESCRIPTION_LIMIT = 300
+UI_SUMMARY_LIMIT = 120
+
+
+def walk_strings(node, path="$"):
+    """Yield (key, json-path, value) for every string leaf in the document."""
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if isinstance(v, str):
+                yield k, f"{path}.{k}", v
+            else:
+                yield from walk_strings(v, f"{path}.{k}")
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            yield from walk_strings(v, f"{path}[{i}]")
+
+
+class TestUiDescriptionLimits(unittest.TestCase):
+    """The limits the real GPT builder enforces, across the WHOLE document."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.schema = load_schema()
+        if cls.schema is None:
+            raise unittest.SkipTest("PyYAML not installed")
+
+    def test_every_description_in_the_document_is_within_the_limit(self):
+        offenders = [(p, len(v)) for k, p, v in walk_strings(self.schema)
+                     if k == "description" and len(v) > UI_DESCRIPTION_LIMIT]
+        self.assertEqual(offenders, [],
+                         f"descriptions over {UI_DESCRIPTION_LIMIT} chars: {offenders}")
+
+    def test_every_summary_in_the_document_is_within_the_limit(self):
+        offenders = [(p, len(v)) for k, p, v in walk_strings(self.schema)
+                     if k == "summary" and len(v) > UI_SUMMARY_LIMIT]
+        self.assertEqual(offenders, [],
+                         f"summaries over {UI_SUMMARY_LIMIT} chars: {offenders}")
+
+    def test_operation_descriptions_specifically(self):
+        """The field that actually failed the import, named per operation."""
+        for path, item in self.schema["paths"].items():
+            for method, op in item.items():
+                if method not in ("get", "put", "post", "patch", "delete"):
+                    continue
+                oid = op["operationId"]
+                with self.subTest(operation=oid):
+                    desc = op.get("description", "")
+                    self.assertTrue(desc.strip(), f"{oid} has no description")
+                    self.assertLessEqual(
+                        len(desc), UI_DESCRIPTION_LIMIT,
+                        f"{oid}.description has length {len(desc)} exceeding "
+                        f"limit of {UI_DESCRIPTION_LIMIT}")
+                    summary = op.get("summary", "")
+                    self.assertTrue(summary.strip(), f"{oid} has no summary")
+                    self.assertLessEqual(len(summary), UI_SUMMARY_LIMIT, oid)
+
+    def test_top_level_info_description(self):
+        desc = self.schema["info"]["description"]
+        self.assertLessEqual(len(desc), UI_DESCRIPTION_LIMIT, len(desc))
+
+    def test_parameter_descriptions(self):
+        for path, item in self.schema["paths"].items():
+            for method, op in item.items():
+                if method not in ("get", "put", "post", "patch", "delete"):
+                    continue
+                for param in op.get("parameters", []) or []:
+                    with self.subTest(operation=op["operationId"],
+                                      param=param["name"]):
+                        self.assertLessEqual(
+                            len(param.get("description", "")), UI_DESCRIPTION_LIMIT)
+
+    def test_schema_and_security_scheme_descriptions(self):
+        comps = self.schema.get("components", {})
+        for group in ("schemas", "securitySchemes"):
+            for name, node in (comps.get(group) or {}).items():
+                for k, p, v in walk_strings(node, f"$.{group}.{name}"):
+                    if k == "description":
+                        with self.subTest(location=p):
+                            self.assertLessEqual(len(v), UI_DESCRIPTION_LIMIT,
+                                                 f"{p} is {len(v)} chars")
+
+    def test_the_previously_failing_operation_is_comfortably_under(self):
+        ops = {op["operationId"]: op for it in self.schema["paths"].values()
+               for m, op in it.items()
+               if m in ("get", "put", "post", "patch", "delete")}
+        n = len(ops["submitTelephoneRequest"]["description"])
+        self.assertLess(n, UI_DESCRIPTION_LIMIT,
+                        "the operation that failed the real import must fit")
+
+    def test_rationale_moved_to_comments_not_dropped(self):
+        """Trimming descriptions must not lose the safety rationale."""
+        raw = SCHEMA_PATH.read_text(encoding="utf-8")
+        comments = "\n".join(l for l in raw.split("\n") if l.lstrip().startswith("#"))
+        for point in ("READ-ONLY", "403", "create-only", "no generic path",
+                      "authorizes nothing", "byte-for-byte"):
+            self.assertIn(point.lower(), comments.lower(),
+                          f"rationale {point!r} lost when descriptions were trimmed")
+
+
 class TestSchemaTextInvariants(unittest.TestCase):
     """Hold even without PyYAML, so the guarantees are never unchecked."""
 
