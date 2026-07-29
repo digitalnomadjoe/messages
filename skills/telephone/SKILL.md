@@ -53,7 +53,12 @@ no unbounded mode, and a request without a bound is refused.
 | mode | who reviews | how to start |
 | --- | --- | --- |
 | `api` (default) | the local OpenAI reviewer daemon | `telephone start --reviewer-mode api` |
-| `browser` | a browser GPT with a GitHub connector | `telephone start --reviewer-mode browser`, or any browser request |
+| `browser` | a browser GPT via the private Telephone GPT **Action** | `telephone start --reviewer-mode browser`, or any browser request |
+
+⚠ The standard ChatGPT GitHub **connector is read-only** (writes return 403) and
+cannot operate Telephone. Read access is enough to inspect it; operating it
+needs the custom GPT Action — see `actions/TELEPHONE_GPT_SETUP.md`. Never
+suggest reconnecting GitHub or changing app permissions to fix this.
 
 They never overlap: the API daemon ignores every report governed by a
 browser-mode run.

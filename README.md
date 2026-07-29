@@ -12,7 +12,15 @@ New here — GPT, Codex, Claude, or any other coding agent? Start with
 | [`skills/telephone/SKILL.md`](skills/telephone/SKILL.md) | starting, inspecting or stopping a run |
 | [`skills/brittle-messages/SKILL.md`](skills/brittle-messages/SKILL.md) | acting as a lane agent on one ticket |
 
-Paste this to bootstrap a **browser-mode** session (GitHub connector only):
+### ⚠ The GitHub connector is read-only
+
+The standard ChatGPT GitHub connector returns **HTTP 403 on writes** (tested
+twice). It can *inspect* Telephone but cannot operate it. Browser operation
+requires the private **Telephone custom GPT Action** —
+[`actions/TELEPHONE_GPT_SETUP.md`](actions/TELEPHONE_GPT_SETUP.md) has the
+token scope, OpenAPI schema and exact UI steps.
+
+Paste this to bootstrap a **browser-mode** session (once the Action is set up):
 
 > Use browser-mode Telephone from `https://github.com/digitalnomadjoe/messages`. Read `AGENTS.md` and `TELEPHONE.md`, then inspect `projects/brittle/state/browser_status.json`. If `browser_telephone_ready` is false, give me the exact commands from `required_local_actions` to run locally. Do not request workstation access. After status becomes ready, operate Telephone through browser requests only.
 

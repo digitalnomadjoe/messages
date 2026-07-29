@@ -21,10 +21,27 @@ its messages are immutable.
 Supporting detail: [`protocol/PROTOCOL.md`](protocol/PROTOCOL.md) for the message
 format, [`README.md`](README.md) for architecture and setup.
 
-## If you are a browser agent (GitHub connector only)
+## If you are a browser agent
 
-You can run the whole loop without workstation access. See
-[`TELEPHONE.md`](TELEPHONE.md) §3b.
+> ### ⚠ The standard ChatGPT GitHub connector cannot operate Telephone
+>
+> It is **read-only**. Tested twice against this repository: reads succeed,
+> writes return **HTTP 403**. It cannot submit a Telephone request.
+>
+> * Repository read access — via the connector or any git client — is enough to
+>   **inspect** Telephone: status, reports, run history, message provenance.
+> * **Operating** Telephone from a browser requires the private **Telephone
+>   custom GPT Action** ([`actions/TELEPHONE_GPT_SETUP.md`](actions/TELEPHONE_GPT_SETUP.md)).
+>
+> Do **not** suggest reconnecting GitHub, changing connector or app
+> permissions, or granting workstation access — none of those make the
+> connector writable. And do **not** conclude the transport works because some
+> other GitHub client (a CLI, a script) could write; the question is whether
+> *this session's* transport can.
+
+You can run the whole loop without workstation access **once the Action is
+configured**. See [`TELEPHONE.md`](TELEPHONE.md) §3b and
+[`actions/TELEPHONE_GPT_SETUP.md`](actions/TELEPHONE_GPT_SETUP.md).
 
 1. read `projects/brittle/state/browser_status.json` **first** — the sanitized
    status cache, readable straight from GitHub;

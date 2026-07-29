@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install test-only dependencies
+        # PyYAML is used solely to parse the GPT Action schema in tests. The
+        # runtime (messagelib, messagesctl, the bridge) stays stdlib-only.
+        run: python3 -m pip install --quiet pyyaml
+
       - name: Unit tests
         run: python3 -m unittest discover -s scripts/tests -v
 

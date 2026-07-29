@@ -1,0 +1,199 @@
+openapi: 3.1.0
+
+info:
+  title: Telephone
+  description: >-
+    Narrowly scoped transport for browser-native Telephone on
+    digitalnomadjoe/messages.
+
+    This action exists because the standard ChatGPT GitHub connector is
+    READ-ONLY: repository writes return HTTP 403, so it cannot submit a
+    Telephone request and cannot operate Telephone.
+
+    Five operations, and nothing else. There is deliberately no generic path
+    parameter, no generic file write, no issue or pull-request operation, no
+    workflow trigger and no way to write a canonical bus message. Four of the
+    five read fixed constant paths. The two operations that take parameters
+    accept only pattern-constrained IDs and a two-value lane enum, so no input
+    can traverse out of its directory.
+  version: 1.1.0
+
+servers:
+  - url: https://api.github.com
+
+paths:
+
+  # ---------------------------------------------------------------- read ----
+  /repos/digitalnomadjoe/messages/contents/projects/brittle/state/telephone_instructions.md:
+    get:
+      operationId: getTelephoneInstructions
+      summary: Read the combined Telephone operating instructions.
+      description: >-
+        Returns AGENTS.md, TELEPHONE.md and skills/telephone/SKILL.md combined
+        into one generated file. Read this before doing anything else. Fixed
+        path; takes no parameters.
+      responses:
+        "200":
+          description: Combined instructions.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileContent"
+        "404":
+          description: Not generated yet; ask Joe to run the local sync command.
+
+  /repos/digitalnomadjoe/messages/contents/projects/brittle/state/browser_status.json:
+    get:
+      operationId: getTelephoneStatus
+      summary: Read Telephone status and workstation readiness.
+      description: >-
+        Sanitized status cache. Read this FIRST and on every poll. If
+        browser_telephone_ready is false, submit nothing and relay
+        required_local_actions to Joe verbatim. Fixed path; no parameters.
+      responses:
+        "200":
+          description: Status cache.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileContent"
+
+  /repos/digitalnomadjoe/messages/contents/projects/brittle/reports/{lane}/{reportId}.md:
+    get:
+      operationId: getTelephoneReport
+      summary: Read one report from a validated lane path.
+      description: >-
+        Reads a single mirrored report. The lane is a two-value enum and the
+        report ID is pattern-constrained, so this cannot address any other file.
+      parameters:
+        - name: lane
+          in: path
+          required: true
+          description: Lane the report belongs to.
+          schema:
+            type: string
+            enum: [locomotion, control]
+        - name: reportId
+          in: path
+          required: true
+          description: Canonical report message ID.
+          schema:
+            type: string
+            pattern: "^BRITTLE-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$"
+      responses:
+        "200":
+          description: The report.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileContent"
+        "404":
+          description: No such report on that lane.
+
+  /repos/digitalnomadjoe/messages/contents/projects/brittle/state/browser_results/{requestId}.json:
+    get:
+      operationId: getTelephoneRequestResult
+      summary: Get the accepted/refused result for one submitted request.
+      description: >-
+        Returns the bridge's decision for a request. A 404 means the bridge has
+        not processed it yet - poll again; it runs roughly every 20 seconds.
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: The request ID you submitted.
+          schema:
+            type: string
+            pattern: "^BREQ-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$"
+      responses:
+        "200":
+          description: Decision for this request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileContent"
+        "404":
+          description: Not decided yet. Poll again.
+
+  # --------------------------------------------------------------- write ----
+  /repos/digitalnomadjoe/messages/contents/projects/brittle/browser_requests/{requestId}.json:
+    put:
+      operationId: submitTelephoneRequest
+      summary: Submit exactly one Telephone request.
+      description: >-
+        Creates ONE new file under projects/brittle/browser_requests/. This is
+        the only write this action can perform, and the only directory it can
+        write to. The file is a PROPOSAL: it is not a canonical bus message and
+        it authorizes nothing. The workstation bridge validates it and either
+        publishes canonical messages exactly as submitted, or refuses it with a
+        published reason.
+
+        Omit `sha`; there is no update path, so an existing request ID is
+        rejected by GitHub rather than overwritten.
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: >-
+            Request ID. Must equal the request_id inside the file, and must
+            match BREQ-<UTC>-<8 hex>.
+          schema:
+            type: string
+            pattern: "^BREQ-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFile"
+      responses:
+        "201":
+          description: Request submitted. Poll getTelephoneRequestResult.
+        "422":
+          description: A request with that ID already exists. Mint a new ID.
+
+components:
+  securitySchemes:
+    githubFineGrainedToken:
+      type: http
+      scheme: bearer
+      description: >-
+        Fine-grained GitHub personal access token, scoped to
+        digitalnomadjoe/messages with Contents read/write ONLY, short
+        expiration. Stored solely as the private GPT Action API key. It is never
+        committed, logged, echoed into chat, or passed as an action parameter.
+
+  schemas:
+    FileContent:
+      type: object
+      description: GitHub Contents API response. `content` is base64.
+      properties:
+        name: { type: string }
+        path: { type: string }
+        sha: { type: string }
+        size: { type: integer }
+        encoding: { type: string }
+        content:
+          type: string
+          description: Base64-encoded file content. Decode before reading.
+      required: [path, content]
+
+    CreateFile:
+      type: object
+      required: [message, content]
+      properties:
+        message:
+          type: string
+          maxLength: 200
+          description: Commit message, for example "telephone submit BREQ-...".
+        content:
+          type: string
+          description: >-
+            Base64-encoded JSON request body. Must contain request_id, kind,
+            project, submitted_by, created_at, lane, unit, idempotency_key and
+            rationale, plus the fields the chosen kind requires. Ticket markdown
+            is published byte-for-byte, so write it exactly as you want it
+            executed.
+
+security:
+  - githubFineGrainedToken: []

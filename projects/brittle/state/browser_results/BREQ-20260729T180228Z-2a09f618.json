@@ -1,0 +1,11 @@
+{
+  "request_id": "BREQ-20260729T180228Z-2a09f618",
+  "status": "accepted",
+  "result_receipt": "BRITTLE-20260729T180316Z-f8e12ade",
+  "canonical_message_ids": [
+    "BRITTLE-20260729T180316Z-9d2ddd2a",
+    "BRITTLE-20260729T180316Z-cf3fd189",
+    "BRITTLE-20260729T180316Z-d6f215b0"
+  ],
+  "decided_at": "2026-07-29T18:03:16.029713Z"
+}
