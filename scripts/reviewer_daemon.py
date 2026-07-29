@@ -98,6 +98,18 @@ class ReviewerError(RuntimeError):
     pass
 
 
+def _scrub(text: str) -> str:
+    """Redact credential-shaped strings out of upstream error bodies.
+
+    A provider's own error text can echo the credential back (OpenAI's 401
+    quotes the key it rejected). That body reaches the journal, so it is
+    scrubbed here rather than trusted to arrive already masked.
+    """
+    for _name, pattern in ml.SECRET_PATTERNS:
+        text = pattern.sub("<redacted>", text)
+    return text
+
+
 def _mock_response() -> str | None:
     path = os.environ.get("BRITTLE_REVIEWER_MOCK")
     if not path:
@@ -146,7 +158,7 @@ def call_model(cfg: dict, system_prompt: str, user_content: str) -> str:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[:400]
+        detail = _scrub(exc.read().decode("utf-8", errors="replace"))[:400]
         raise ReviewerError(f"OpenAI HTTP {exc.code}: {detail}") from exc
     except (urllib.error.URLError, TimeoutError) as exc:
         raise ReviewerError(f"OpenAI transport error: {exc}") from exc
