@@ -482,8 +482,23 @@ class TestBrowserStatus(BrowserTestCase):
 
         text = json.dumps(payload)
         self.assertEqual(ml.scan_secrets(text), [])
-        for banned in ("/home/robojoe", "sk-", "Authorization", "Bearer"):
+        for banned in ("sk-", "Authorization", "Bearer"):
             self.assertNotIn(banned, text, f"status leaked {banned!r}")
+
+        # A workstation path may appear ONLY inside a remediation command --
+        # that is the feature, since Joe has to paste it. Everywhere else in the
+        # status it would be a leak.
+        without_actions = json.dumps(
+            {k: v for k, v in payload.items() if k != "required_local_actions"})
+        self.assertNotIn("/home/robojoe", without_actions,
+                         "workstation paths belong only in published commands")
+        for action in payload["required_local_actions"]:
+            for field, val in action.items():
+                if "/home/robojoe" in val:
+                    self.assertIn(field, ("command", "verify_command"),
+                                  f"path leaked into {field}")
+                    self.assertTrue(val.startswith(bb._ALLOWED_COMMAND_PREFIXES),
+                                    f"unvetted command form: {val!r}")
 
     def test_status_lists_pending_and_refused_requests(self):
         rid_bad, _ = self.submit("status_request", submitted_by="mallory")
