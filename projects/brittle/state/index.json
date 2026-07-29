@@ -1,6 +1,7 @@
 {
   "schema": 1,
   "latest_report_by_lane": {
+    "control": "BRITTLE-20260729T155635Z-591ddd66",
     "locomotion": "BRITTLE-20260729T051155Z-44221a2f"
   },
   "open_ticket_by_lane": {},
@@ -11,7 +12,7 @@
     "escalation": 1,
     "owner_decision": 1,
     "receipt": 3,
-    "report": 1,
+    "report": 2,
     "review": 1,
     "ticket": 0
   }
