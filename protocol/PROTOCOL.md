@@ -176,6 +176,19 @@ Every mutating command performs, in order:
 Never: force-push, amend a published commit, rewrite history, delete a message,
 or overwrite another agent's file.
 
+Immutability is enforced at two layers:
+
+* **Locally, before the commit** — the working tree is inspected and any
+  modification or deletion under a message directory aborts publication.
+* **In CI, after the fact** — `messagesctl validate --diff-base <ref>` compares
+  the whole range `<ref>...HEAD` and rejects any `M`, `D` or non-sanctioned `R`
+  under a message directory.
+
+The CI comparison is cumulative, so a message created *and* edited inside the
+same pull request reads as a single addition. That is intended: the invariant
+being defended is *"once a message is on `main`, it never changes"*, and the
+local layer already blocks editing during the session that wrote it.
+
 ## 10. Public-repository safety
 
 Permitted in message directories: `.md`, `.json`, ≤256 KiB each.
