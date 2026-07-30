@@ -11,10 +11,10 @@
   "counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 35,
+    "receipt": 36,
     "report": 10,
     "review": 9,
-    "telephone_run": 3,
+    "telephone_run": 4,
     "ticket": 4
   }
 }
