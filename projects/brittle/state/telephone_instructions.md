@@ -352,8 +352,10 @@ workstation.
 3. wait for a report to appear in `reports_awaiting_review`
 4. read it under `projects/brittle/reports/<lane>/`
 5. submit `review_and_ticket` with the exact ticket you want executed
-6. watch the local lane agent claim and complete it (`current_claim`, then a
-   new completion report)
+6. watch the lane execute it. If the autonomous lane executor is running, it
+   claims and completes eligible read-only tickets with no human command --
+   watch `lane_executors` in the status cache, then look for the new completion
+   report. Otherwise a human agent session claims it.
 7. review the completion report, judging the criterion
 8. continue or stop — the cycle bound and criterion rules apply identically
 
@@ -571,6 +573,7 @@ budget with the goal unmet.
 | combined instructions (Action reads this) | `projects/brittle/state/telephone_instructions.md` |
 | per-request results (Action reads these) | `projects/brittle/state/browser_results/` |
 | browser requests | `projects/brittle/browser_requests/` |
+| autonomous lane executor | `scripts/lane_executor.py` |
 | orchestration logic | `scripts/telephone.py` |
 | spending guard | `scripts/spend_guard.py` |
 | message protocol | [`protocol/PROTOCOL.md`](protocol/PROTOCOL.md) |
@@ -868,7 +871,10 @@ exactly as outside it.
 The cycle limit is enforced in code, outside the model — no reviewer output can
 extend a run.
 
-Watchers never auto-claim. A claim always means a real agent took the work.
+Watchers never auto-claim. The autonomous lane executor may claim and complete
+tickets that match its closed registry of read-only handlers; everything else it
+blocks with a published reason. Either way a claim always means a real executor
+or agent took the work.
 
 ## Reporting back
 
