@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T01:32:00.549159Z",
-  "repo_head_at_generation": "6f8449ec3174",
+  "generated_at": "2026-07-30T01:39:30.235970Z",
+  "repo_head_at_generation": "adf5362ce40c",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -70,26 +70,29 @@
       "stop_reason_detail": "still running",
       "current_ticket": {
         "id": "BRITTLE-20260729T234917Z-37c7566d",
-        "status": "open",
+        "status": "claimed",
         "title": "Read-only two-poll control service check"
       },
-      "current_claim": null,
+      "current_claim": "BRITTLE-20260730T013910Z-6b052cd4",
       "blocker": null,
       "start_report": "BRITTLE-20260729T232216Z-0f9f8bd9",
       "api_calls": 0,
       "spend_usd": 0
     }
   ],
-  "open_tickets_by_lane": {
-    "control": "BRITTLE-20260729T234917Z-37c7566d"
+  "open_tickets_by_lane": {},
+  "active_claims": {
+    "BRITTLE-20260729T234917Z-37c7566d": {
+      "agent": "control",
+      "lease_expires_at": "2026-07-30T02:24:10.936546Z"
+    }
   },
-  "active_claims": {},
   "open_escalations": [],
   "reports_awaiting_review": [],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 27,
+    "receipt": 28,
     "report": 8,
     "review": 8,
     "telephone_run": 3,
@@ -118,8 +121,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T01:32:00.549159Z",
-  "last_successful_sync": "2026-07-30T01:32:00.549159Z",
+  "gateway_heartbeat": "2026-07-30T01:39:30.235970Z",
+  "last_successful_sync": "2026-07-30T01:39:30.235970Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
