@@ -125,9 +125,18 @@ class TestAutonomousCompletion(ExecutorTestCase):
         self.assertEqual(report.get("lane"), "control")
         self.assertEqual(report.get("in_reply_to"), tid)
         self.assertIn("service_two_poll_check", report.body)
-        self.assertIn("Overall: PASS", report.body)
-        self.assertIn("No state-changing action was taken", report.body)
         self.assertIn("Executed automatically", report.body)
+        self.assertIn("No state-changing action was taken", report.body)
+        # The handler's verdict depends on whether the service under test happens
+        # to be running here, which is environment-specific -- on a CI runner it
+        # does not exist and FAIL is the correct, honest answer. What must hold
+        # everywhere is that the executor reached a verdict and reported the
+        # evidence for it.
+        self.assertRegex(report.body, r"\*\*Overall: (PASS|FAIL)\.\*\*")
+        self.assertIn("Raw outputs", report.body)
+        self.assertIn("Acceptance criteria", report.body)
+        self.assertEqual(report.body.count("**Poll "), 2,
+                         "both polls' raw output must be recorded")
         self.assertValid()
 
     def test_local_report_is_written_and_authoritative(self):
