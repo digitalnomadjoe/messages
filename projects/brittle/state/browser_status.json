@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-29T23:49:19.020036Z",
-  "repo_head_at_generation": "d47905152e0b",
+  "generated_at": "2026-07-30T00:00:11.896204Z",
+  "repo_head_at_generation": "627c5c90a925",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -118,16 +118,16 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-29T23:49:19.020036Z",
-  "last_successful_sync": "2026-07-29T23:49:19.020036Z",
+  "gateway_heartbeat": "2026-07-30T00:00:11.896204Z",
+  "last_successful_sync": "2026-07-30T00:00:11.896204Z",
   "spending_guard": {
-    "day_committed_usd": 0.052839,
+    "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
-    "day_remaining_usd": 0.447161,
+    "day_remaining_usd": 0.5,
     "month_committed_usd": 0.052839,
     "month_cap_usd": 5.0,
     "month_remaining_usd": 4.947161,
-    "calls_today": 5,
+    "calls_today": 0,
     "max_calls_per_day": 10,
     "blocked": false
   },
