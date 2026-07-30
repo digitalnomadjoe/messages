@@ -81,3 +81,12 @@ ledger_path = ""
 # the request file. Empty = every browser request is refused (fail closed).
 allowed_identities = ["digitalnomadjoe"]
 poll_seconds = 20
+
+[executor]
+# Autonomous lane execution. The executor matches tickets against a CLOSED
+# registry of read-only handlers and blocks anything it does not recognise --
+# widening autonomy means adding a reviewed handler, not loosening a gate.
+poll_seconds = 30
+task_timeout_seconds = 900
+# Where completion reports are written locally (authoritative copies).
+reports_dir = "/home/robojoe/code/brittle/rgl/reports"

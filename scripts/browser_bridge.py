@@ -758,6 +758,35 @@ def _service_state(unit: str) -> dict:
         return {"active": None, "pid": 0, "restarts": 0}
 
 
+def lane_executor_status(msgs: dict) -> dict:
+    """Sanitized autonomous-executor state per lane. IDs and states only."""
+    out = {}
+    for lane in ml.AGENT_LANES:
+        svc = _service_state(f"brittle-lane-executor-{lane}.service")
+        state = {}
+        path = ml.state_dir() / f"executor-{lane}.json"
+        if path.exists():
+            try:
+                state = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                state = {}
+        in_flight = state.get("in_flight_ticket")
+        out[lane] = {
+            "service_active": bool(svc["active"]),
+            "executing": bool(in_flight),
+            "current_ticket": in_flight,
+            "current_handler": state.get("in_flight_handler"),
+            "started_at": state.get("in_flight_started_at"),
+            "last_ticket": state.get("last_ticket"),
+            "last_report": state.get("last_report"),
+            "last_handler": state.get("last_handler"),
+            "last_outcome": state.get("last_outcome"),
+            "last_finished_at": state.get("last_finished_at"),
+            "high_water_mark": state.get("high_water_mark"),
+        }
+    return out
+
+
 def result_record(rid: str, receipt, msgs: dict) -> dict:
     """Sanitized outcome for one request.
 
@@ -880,6 +909,7 @@ def build_browser_status(cfg: dict, msgs: dict, repo: ml.Repo,
         spend = None
 
     readiness = compute_readiness(cfg, msgs, repo, status_age_seconds(repo))
+    executors = lane_executor_status(msgs)
 
     return {
         "schema": 1,
@@ -904,6 +934,7 @@ def build_browser_status(cfg: dict, msgs: dict, repo: ml.Repo,
         "gateway_heartbeat": ml.iso(now),
         "last_successful_sync": ml.iso(now),
         "spending_guard": spend,
+        "lane_executors": executors,
         "browser_requests": {"pending": pending, "refused": refused,
                              "recent_results": recent},
         "notes": (

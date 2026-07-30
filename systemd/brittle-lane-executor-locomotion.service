@@ -1,0 +1,28 @@
+[Unit]
+Description=BRITTLE locomotion lane autonomous ticket executor
+Documentation=https://github.com/digitalnomadjoe/messages
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/code/messages/scripts/lane_executor.py --lane locomotion
+WorkingDirectory=%h/code/messages
+
+# No OpenAI credential: the executor calls no model. It matches tickets against
+# a closed handler registry and blocks anything it does not recognise.
+
+Restart=always
+RestartSec=20
+TimeoutStopSec=60
+KillSignal=SIGTERM
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brittle-exec-locomotion
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

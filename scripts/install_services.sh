@@ -25,6 +25,8 @@ UNITS="brittle-message-reviewer.service
 brittle-browser-bridge.service
 brittle-messages-locomotion.service
 brittle-messages-control.service
+brittle-lane-executor-control.service
+brittle-lane-executor-locomotion.service
 brittle-message-sync.service
 brittle-message-sync.timer"
 

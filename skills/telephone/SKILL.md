@@ -163,7 +163,10 @@ exactly as outside it.
 The cycle limit is enforced in code, outside the model — no reviewer output can
 extend a run.
 
-Watchers never auto-claim. A claim always means a real agent took the work.
+Watchers never auto-claim. The autonomous lane executor may claim and complete
+tickets that match its closed registry of read-only handlers; everything else it
+blocks with a published reason. Either way a claim always means a real executor
+or agent took the work.
 
 ## Reporting back
 
