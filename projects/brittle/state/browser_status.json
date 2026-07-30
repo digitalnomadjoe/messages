@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T01:42:57.504870Z",
-  "repo_head_at_generation": "5e42a19a4716",
+  "generated_at": "2026-07-30T01:43:41.128460Z",
+  "repo_head_at_generation": "cb093bf7bd6f",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -60,14 +60,14 @@
       "lane": "control",
       "unit": "CERT-CUSTOM-GPT-TELEPHONE",
       "reviewer_mode": "browser",
-      "state": "active",
+      "state": "completed",
       "cycles_completed": 0,
       "max_cycles": 1,
       "criterion": "The read-only service health check completes and reports two polls of ActiveState, PID, and restart count without any state change.",
-      "criterion_status": null,
-      "criterion_confidence": null,
-      "stop_reason": null,
-      "stop_reason_detail": "still running",
+      "criterion_status": "met",
+      "criterion_confidence": 0.99,
+      "stop_reason": "criterion_met",
+      "stop_reason_detail": "criterion met -- run succeeded",
       "current_ticket": {
         "id": "BRITTLE-20260729T234917Z-37c7566d",
         "status": "completed",
@@ -77,7 +77,7 @@
       "blocker": null,
       "start_report": "BRITTLE-20260729T232216Z-0f9f8bd9",
       "api_calls": 0,
-      "spend_usd": 0
+      "spend_usd": 0.0
     }
   ],
   "open_tickets_by_lane": {},
@@ -89,7 +89,7 @@
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 30,
+    "receipt": 32,
     "report": 9,
     "review": 8,
     "telephone_run": 3,
@@ -118,8 +118,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T01:42:57.504870Z",
-  "last_successful_sync": "2026-07-30T01:42:57.504870Z",
+  "gateway_heartbeat": "2026-07-30T01:43:41.128460Z",
+  "last_successful_sync": "2026-07-30T01:43:41.128460Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
@@ -216,6 +216,15 @@
         "canonical_message_ids": [],
         "decided_at": "2026-07-30T01:42:55.950132Z",
         "reason": "projects/brittle/browser_requests/BREQ-20260730T014130Z-4f8a2c1d.json: unknown field(s): ['stop_reason']"
+      },
+      {
+        "request_id": "BREQ-20260730T014310Z-7ab34e90",
+        "status": "accepted",
+        "result_receipt": "BRITTLE-20260730T014339Z-15e64c90",
+        "canonical_message_ids": [
+          "BRITTLE-20260730T014339Z-8541e194"
+        ],
+        "decided_at": "2026-07-30T01:43:39.674582Z"
       }
     ]
   },
