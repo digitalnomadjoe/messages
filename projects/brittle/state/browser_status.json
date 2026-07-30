@@ -1,17 +1,17 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T02:29:13.542730Z",
-  "repo_head_at_generation": "01dc7463e9b1",
+  "generated_at": "2026-07-30T02:29:15.033617Z",
+  "repo_head_at_generation": "c506e2761c5e",
   "browser_telephone_ready": false,
   "local_action_required": true,
   "readiness_blockers": [
-    "browser bridge is installed but not running"
+    "locomotion lane watcher is not running"
   ],
   "required_local_actions": [
     {
-      "reason": "Browser bridge is installed but inactive",
-      "command": "systemctl --user enable --now brittle-browser-bridge.service",
-      "verify_command": "systemctl --user status brittle-browser-bridge.service --no-pager",
+      "reason": "Locomotion lane watcher is not running",
+      "command": "systemctl --user enable --now brittle-messages-locomotion.service",
+      "verify_command": "systemctl --user status brittle-messages-locomotion.service --no-pager",
       "expected_result": "Active: active (running)"
     }
   ],
@@ -107,8 +107,8 @@
   "api_reviewer_mode_enabled": false,
   "services": {
     "bridge": {
-      "active": false,
-      "pid": 2949425,
+      "active": true,
+      "pid": 3040268,
       "restarts": 0
     },
     "api_reviewer": {
@@ -117,7 +117,7 @@
       "restarts": 0
     },
     "lane_locomotion": {
-      "active": true,
+      "active": false,
       "pid": 2949510,
       "restarts": 0
     },
@@ -127,8 +127,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T02:29:13.542730Z",
-  "last_successful_sync": "2026-07-30T02:29:13.542730Z",
+  "gateway_heartbeat": "2026-07-30T02:29:15.033617Z",
+  "last_successful_sync": "2026-07-30T02:29:15.033617Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
@@ -139,6 +139,34 @@
     "calls_today": 0,
     "max_calls_per_day": 10,
     "blocked": false
+  },
+  "lane_executors": {
+    "locomotion": {
+      "service_active": false,
+      "executing": false,
+      "current_ticket": null,
+      "current_handler": null,
+      "started_at": null,
+      "last_ticket": null,
+      "last_report": null,
+      "last_handler": null,
+      "last_outcome": null,
+      "last_finished_at": null,
+      "high_water_mark": null
+    },
+    "control": {
+      "service_active": false,
+      "executing": false,
+      "current_ticket": null,
+      "current_handler": null,
+      "started_at": null,
+      "last_ticket": null,
+      "last_report": null,
+      "last_handler": null,
+      "last_outcome": null,
+      "last_finished_at": null,
+      "high_water_mark": null
+    }
   },
   "browser_requests": {
     "pending": [],
