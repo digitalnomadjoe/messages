@@ -1,20 +1,11 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T02:29:15.033617Z",
-  "repo_head_at_generation": "c506e2761c5e",
-  "browser_telephone_ready": false,
-  "local_action_required": true,
-  "readiness_blockers": [
-    "locomotion lane watcher is not running"
-  ],
-  "required_local_actions": [
-    {
-      "reason": "Locomotion lane watcher is not running",
-      "command": "systemctl --user enable --now brittle-messages-locomotion.service",
-      "verify_command": "systemctl --user status brittle-messages-locomotion.service --no-pager",
-      "expected_result": "Active: active (running)"
-    }
-  ],
+  "generated_at": "2026-07-30T02:29:36.508891Z",
+  "repo_head_at_generation": "53f5462da74a",
+  "browser_telephone_ready": true,
+  "local_action_required": false,
+  "readiness_blockers": [],
+  "required_local_actions": [],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -117,18 +108,18 @@
       "restarts": 0
     },
     "lane_locomotion": {
-      "active": false,
-      "pid": 2949510,
+      "active": true,
+      "pid": 3040360,
       "restarts": 0
     },
     "lane_control": {
       "active": true,
-      "pid": 2949537,
+      "pid": 3040392,
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T02:29:15.033617Z",
-  "last_successful_sync": "2026-07-30T02:29:15.033617Z",
+  "gateway_heartbeat": "2026-07-30T02:29:36.508891Z",
+  "last_successful_sync": "2026-07-30T02:29:36.508891Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
@@ -142,7 +133,7 @@
   },
   "lane_executors": {
     "locomotion": {
-      "service_active": false,
+      "service_active": true,
       "executing": false,
       "current_ticket": null,
       "current_handler": null,
@@ -152,10 +143,10 @@
       "last_handler": null,
       "last_outcome": null,
       "last_finished_at": null,
-      "high_water_mark": null
+      "high_water_mark": "2026-07-30T02:29:17.581411Z"
     },
     "control": {
-      "service_active": false,
+      "service_active": true,
       "executing": false,
       "current_ticket": null,
       "current_handler": null,
@@ -165,7 +156,7 @@
       "last_handler": null,
       "last_outcome": null,
       "last_finished_at": null,
-      "high_water_mark": null
+      "high_water_mark": "2026-07-30T02:29:17.482800Z"
     }
   },
   "browser_requests": {
