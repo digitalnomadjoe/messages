@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T04:13:48.104239Z",
-  "repo_head_at_generation": "eacc0b633f51",
+  "generated_at": "2026-07-30T04:14:09.531748Z",
+  "repo_head_at_generation": "97dfa4cecc86",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -94,26 +94,24 @@
       "stop_reason_detail": "still running",
       "current_ticket": {
         "id": "BRITTLE-20260730T041346Z-cdae6718",
-        "status": "open",
+        "status": "blocked",
         "title": "CERT-AUTOEXEC-GPT read-only two-poll control service check"
       },
       "current_claim": null,
-      "blocker": null,
+      "blocker": "autonomous executor: no autonomous handler matches this ticket. Autonomous execution covers only a closed set of read-only tasks; this one needs a human or a full agent session. Handlers: service_two_",
       "start_report": "BRITTLE-20260730T015637Z-914c4683",
       "api_calls": 0,
       "spend_usd": 0
     }
   ],
-  "open_tickets_by_lane": {
-    "control": "BRITTLE-20260730T041346Z-cdae6718"
-  },
+  "open_tickets_by_lane": {},
   "active_claims": {},
   "open_escalations": [],
   "reports_awaiting_review": [],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 39,
+    "receipt": 40,
     "report": 10,
     "review": 10,
     "telephone_run": 4,
@@ -142,8 +140,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T04:13:48.104239Z",
-  "last_successful_sync": "2026-07-30T04:13:48.104239Z",
+  "gateway_heartbeat": "2026-07-30T04:14:09.531748Z",
+  "last_successful_sync": "2026-07-30T04:14:09.531748Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
