@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T02:14:41.914277Z",
-  "repo_head_at_generation": "19b05cc57578",
+  "generated_at": "2026-07-30T02:14:43.406771Z",
+  "repo_head_at_generation": "20af786fd4e0",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -119,8 +119,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T02:14:41.914277Z",
-  "last_successful_sync": "2026-07-30T02:14:41.914277Z",
+  "gateway_heartbeat": "2026-07-30T02:14:43.406771Z",
+  "last_successful_sync": "2026-07-30T02:14:43.406771Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
@@ -131,34 +131,6 @@
     "calls_today": 0,
     "max_calls_per_day": 10,
     "blocked": false
-  },
-  "lane_executors": {
-    "locomotion": {
-      "service_active": false,
-      "executing": false,
-      "current_ticket": null,
-      "current_handler": null,
-      "started_at": null,
-      "last_ticket": null,
-      "last_report": null,
-      "last_handler": null,
-      "last_outcome": null,
-      "last_finished_at": null,
-      "high_water_mark": null
-    },
-    "control": {
-      "service_active": false,
-      "executing": false,
-      "current_ticket": null,
-      "current_handler": null,
-      "started_at": null,
-      "last_ticket": null,
-      "last_report": null,
-      "last_handler": null,
-      "last_outcome": null,
-      "last_finished_at": null,
-      "high_water_mark": null
-    }
   },
   "browser_requests": {
     "pending": [],
