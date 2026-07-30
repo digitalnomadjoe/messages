@@ -1,0 +1,8 @@
+{
+  "request_id": "BREQ-20260730T023730Z-5e2b8f1c",
+  "status": "refused",
+  "result_receipt": "BRITTLE-20260730T033619Z-63ffe567",
+  "canonical_message_ids": [],
+  "decided_at": "2026-07-30T03:36:19.732840Z",
+  "reason": "request is not valid UTF-8: byte 0xA5 at position 1806 (invalid start byte). Serialize the JSON as UTF-8 before base64-encoding, and escape non-ASCII characters."
+}

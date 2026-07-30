@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T03:35:16.795675Z",
-  "repo_head_at_generation": "81c0a1d87eb8",
+  "generated_at": "2026-07-30T03:36:21.290641Z",
+  "repo_head_at_generation": "abf9cf27ac59",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -109,7 +109,7 @@
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 36,
+    "receipt": 37,
     "report": 10,
     "review": 9,
     "telephone_run": 4,
@@ -119,7 +119,7 @@
   "services": {
     "bridge": {
       "active": true,
-      "pid": 3040268,
+      "pid": 3123025,
       "restarts": 0
     },
     "api_reviewer": {
@@ -138,8 +138,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T03:35:16.795675Z",
-  "last_successful_sync": "2026-07-30T03:35:16.795675Z",
+  "gateway_heartbeat": "2026-07-30T03:36:21.290641Z",
+  "last_successful_sync": "2026-07-30T03:36:21.290641Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
@@ -180,9 +180,7 @@
     }
   },
   "browser_requests": {
-    "pending": [
-      "BREQ-20260730T023730Z-5e2b8f1c"
-    ],
+    "pending": [],
     "refused": [
       {
         "request_id": "BREQ-20260729T234300Z-5e7a91c2",
@@ -191,6 +189,10 @@
       {
         "request_id": "BREQ-20260730T014130Z-4f8a2c1d",
         "reason": "projects/brittle/browser_requests/BREQ-20260730T014130Z-4f8a2c1d.json: unknown field(s): ['stop_reason']"
+      },
+      {
+        "request_id": "BREQ-20260730T023730Z-5e2b8f1c",
+        "reason": "request is not valid UTF-8: byte 0xA5 at position 1806 (invalid start byte). Serialize the JSON as UTF-8 before base64-encoding, and escape non-ASCII characters."
       }
     ],
     "recent_results": [
@@ -294,6 +296,14 @@
           "BRITTLE-20260730T023705Z-a6cac54e"
         ],
         "decided_at": "2026-07-30T02:37:05.294658Z"
+      },
+      {
+        "request_id": "BREQ-20260730T023730Z-5e2b8f1c",
+        "status": "refused",
+        "result_receipt": "BRITTLE-20260730T033619Z-63ffe567",
+        "canonical_message_ids": [],
+        "decided_at": "2026-07-30T03:36:19.732840Z",
+        "reason": "request is not valid UTF-8: byte 0xA5 at position 1806 (invalid start byte). Serialize the JSON as UTF-8 before base64-encoding, and escape non-ASCII characters."
       }
     ]
   },
