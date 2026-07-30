@@ -108,9 +108,14 @@ acceptance criteria, prohibitions, and what the resulting report must contain.
 Never ask the local OpenAI API reviewer to review anything. Browser-mode runs
 are yours alone; the API reviewer ignores them by design.
 
-To act: call submitTelephoneRequest with a base64-encoded JSON body. Mint a
-fresh request_id (BREQ-<UTCyyyymmddThhmmssZ>-<8 lowercase hex>) and a unique
-idempotency_key for every distinct intent. Then poll
+To act: call submitTelephoneRequest with a base64-encoded JSON body. Serialize
+the JSON as UTF-8 BEFORE base64-encoding it, escape all non-ASCII characters as
+\uXXXX, and use only ASCII punctuation in ticket markdown -- plain hyphens, not
+en or em dashes; straight quotes, not curly ones; "->" not arrows; no emoji. A
+request that is not valid UTF-8 is refused with the byte and offset named, and
+cannot be repaired or retried under the same ID. Mint a fresh request_id
+(BREQ-<UTCyyyymmddThhmmssZ>-<8 lowercase hex>) and a unique idempotency_key for
+every distinct intent. Then poll
 getTelephoneRequestResult until it returns; a 404 just means the bridge has
 not run yet (~20s). Read the result: accepted, or refused with a reason.
 

@@ -67,6 +67,11 @@ In browser mode **the browser GPT authors every review and ticket; the
 workstation bridge only validates and publishes exactly what was submitted.**
 The bridge runs no model. Full protocol: [`TELEPHONE.md`](../../TELEPHONE.md) §3b.
 
+**Encoding:** serialize request JSON as UTF-8 before base64, escape non-ASCII
+(`\uXXXX`), and use ASCII punctuation in ticket markdown (`-` not en dashes,
+straight quotes, `->` not arrows, no emoji). A request that is not valid UTF-8 is
+refused with the offending byte and offset named, and is never repaired for you.
+
 ## Browser mode: check readiness before submitting anything
 
 > Browser-mode Telephone does not require workstation access from the browser

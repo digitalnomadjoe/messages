@@ -111,13 +111,19 @@ def cmd_validate(args) -> int:
                                 scan_browser_requests=True)
     if args.diff_base:
         problems += _diff_immutability(repo, args.diff_base)
-    if problems:
-        print(f"INVALID -- {len(problems)} problem(s):", file=sys.stderr)
-        for p in problems:
+    blocking = [p for p in problems if not p.startswith(ml.QUARANTINE_PREFIX)]
+    quarantined = [p for p in problems if p.startswith(ml.QUARANTINE_PREFIX)]
+    for q in quarantined:
+        print(f"  ! {q} (non-blocking: untrusted browser request)", file=sys.stderr)
+    if blocking:
+        print(f"INVALID -- {len(blocking)} problem(s):", file=sys.stderr)
+        for p in blocking:
             print(f"  - {p}", file=sys.stderr)
         return 1
     msgs = ml.load_messages(repo.path)
-    print(f"OK -- {len(msgs)} message(s) validated in {repo.path}")
+    print(f"OK -- {len(msgs)} message(s) validated in {repo.path}"
+          + (f"  ({len(quarantined)} quarantined request warning(s))"
+             if quarantined else ""))
     return 0
 
 
@@ -1165,6 +1171,11 @@ def cmd_browser_status(args) -> int:
     with ml.repo_lock(repo.path):
         msgs = ml.load_messages(repo.path)
         bridge = bb.BrowserBridge(cfg)
+        # Regenerate the fixed-path artifacts the GPT Action reads too. The
+        # bridge normally does this, but if only the status were refreshed the
+        # combined instructions could silently go stale whenever the bridge is
+        # down -- and that file is what a browser agent is told to obey.
+        extra = bridge.write_action_artifacts(msgs)
         payload = bb.build_browser_status(cfg, msgs, repo, bridge)
         path = repo.path / bb.BROWSER_STATUS_PATH
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -1174,15 +1185,18 @@ def cmd_browser_status(args) -> int:
             raise MessageError(f"browser status failed the secret scan: {findings[0]}")
         path.write_text(text, encoding="utf-8")
         if args.commit:
-            repo.git("add", "--", bb.BROWSER_STATUS_PATH)
+            repo.git("add", "--", bb.BROWSER_STATUS_PATH, *extra)
             if repo.git("diff", "--cached", "--name-only").strip():
                 repo.git("commit", "-m", "chore(state): refresh browser status",
                          identity=True)
                 if repo.has_remote():
                     repo.git_ok("push", "origin", f"HEAD:{repo.branch()}")
-    _emit(args, {"path": bb.BROWSER_STATUS_PATH, "runs": len(payload["telephone_runs"])},
+    _emit(args, {"path": bb.BROWSER_STATUS_PATH,
+                 "runs": len(payload["telephone_runs"]),
+                 "artifacts_refreshed": extra},
           f"browser status rebuilt: {bb.BROWSER_STATUS_PATH} "
-          f"({len(payload['telephone_runs'])} run(s))")
+          f"({len(payload['telephone_runs'])} run(s), "
+          f"{len(extra)} action artifact(s) refreshed)")
     return 0
 
 

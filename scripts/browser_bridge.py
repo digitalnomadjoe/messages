@@ -286,6 +286,14 @@ class BrowserBridge:
                 except MessageError as exc:
                     self.refuse(rel, f"publication failed: {exc}", msgs)
                     stats["refused"] += 1
+                except Exception as exc:  # noqa: BLE001
+                    # Requests are untrusted input. Any unexpected failure is
+                    # contained to its own request and answered with a receipt,
+                    # so the pass continues and later valid requests still run.
+                    LOG.exception("unexpected failure on %s", rid)
+                    self.refuse(rel,
+                                f"unexpected {type(exc).__name__}: {exc}", msgs)
+                    stats["refused"] += 1
                 msgs = ml.load_messages(self.repo.path)
 
             try:
@@ -302,7 +310,10 @@ class BrowserBridge:
         LOG.warning("refusing %s: %s", rid, reason)
         lane, unit, submitted = "control", None, None
         try:
-            req = json.loads((self.repo.path / rel).read_text(encoding="utf-8"))
+            # errors="replace" so a malformed byte cannot stop us recovering the
+            # routing fields for the receipt.
+            text = (self.repo.path / rel).read_bytes().decode("utf-8", "replace")
+            req = json.loads(text)
             lane = req.get("lane") if req.get("lane") in ml.AGENT_LANES else "control"
             unit, submitted = req.get("unit"), req.get("submitted_by")
         except Exception:
@@ -350,7 +361,20 @@ class BrowserBridge:
     def process(self, rel: str, msgs: dict) -> None:
         rid = Path(rel).stem
         path = self.repo.path / rel
-        raw = path.read_text(encoding="utf-8")
+        # Decode explicitly. A malformed byte is this ONE request's problem, not
+        # the pass's: reading as text here used to raise UnicodeDecodeError out
+        # of the pass, so a single bad submission stalled the bridge forever and
+        # left itself permanently pending.
+        data = path.read_bytes()
+        try:
+            raw = data.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            bad = data[exc.start] if exc.start < len(data) else 0
+            raise BridgeRefusal(
+                f"request is not valid UTF-8: byte 0x{bad:02X} at position "
+                f"{exc.start} ({exc.reason}). Serialize the JSON as UTF-8 before "
+                f"base64-encoding, and escape non-ASCII characters."
+            ) from exc
         try:
             req = json.loads(raw)
         except json.JSONDecodeError as exc:

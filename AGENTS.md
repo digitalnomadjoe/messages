@@ -45,7 +45,10 @@ configured**. See [`TELEPHONE.md`](TELEPHONE.md) §3b and
 
 1. read `projects/brittle/state/browser_status.json` **first** — the sanitized
    status cache, readable straight from GitHub;
-2. commit request files to `projects/brittle/browser_requests/<REQUEST_ID>.json`;
+2. commit request files to `projects/brittle/browser_requests/<REQUEST_ID>.json`
+   — **serialized as UTF-8 before base64, non-ASCII escaped (`\uXXXX`), ASCII
+   punctuation only in ticket markdown**. A request that is not valid UTF-8 is
+   refused and cannot be repaired for you;
 3. read your `browser_result` receipt to learn whether each request was accepted
    or refused, and why.
 

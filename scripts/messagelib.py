@@ -218,6 +218,12 @@ COMMIT_RE = re.compile(r"^[0-9a-f]{7,40}$")
 
 MIRROR_MARKER = "<!-- brittle:mirrored-content -->"
 
+# Findings in untrusted browser-request files. Reported, but non-blocking: a
+# malformed proposal must not be able to turn the repository red. The bridge
+# refuses it with a receipt, and the file may simply be deleted -- a request is
+# a proposal, not a canonical message.
+QUARANTINE_PREFIX = "QUARANTINE "
+
 
 class MessageError(RuntimeError):
     """Any protocol / policy violation.  Always fail closed."""
@@ -1202,15 +1208,17 @@ def validate_repo(root: str | Path, *, private_patterns: Sequence[str] = (),
             continue
         if rel == "scripts/messagelib.py" or rel.startswith("scripts/tests/"):
             continue  # the detector's own corpus
-        if rel.startswith(DIR_BROWSER_REQUESTS + "/") and not scan_browser_requests:
-            continue  # quarantined; the bridge scans and refuses these
+        quarantined = rel.startswith(DIR_BROWSER_REQUESTS + "/")
+        if quarantined and not scan_browser_requests:
+            continue  # the bridge scans and refuses these
+        prefix = QUARANTINE_PREFIX if quarantined else ""
         try:
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
-            problems.append(f"{rel}: not valid UTF-8 text")
+            problems.append(f"{prefix}{rel}: not valid UTF-8 text")
             continue
         for finding in scan_secrets(text, private_patterns):
-            problems.append(f"{rel}: possible secret -- {finding}")
+            problems.append(f"{prefix}{rel}: possible secret -- {finding}")
 
     # 7. generated index consistency
     if check_index:

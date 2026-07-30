@@ -201,6 +201,97 @@ class TestSafetyRefusals(BrowserTestCase):
         self.assertEqual(r.get("status"), "blocked")
         self.assertIn("not valid JSON", str(r.get("reason")))
 
+    def test_malformed_utf8_request_is_refused_and_does_not_stall_the_pass(self):
+        """One bad byte must not wedge the bridge.
+
+        Reproduces BREQ-20260730T023730Z-5e2b8f1c: byte 0xA5 at position 1806.
+        Reading the file as text raised UnicodeDecodeError out of the pass, so
+        every later request stalled behind it, permanently pending.
+        """
+        # a request that is valid JSON except for one invalid UTF-8 byte
+        rid_bad = "BREQ-20260730T023730Z-5e2b8f1c"
+        _r, req = self.request("status_request")
+        req["request_id"] = rid_bad
+        req["rationale"] = "polls are 10 seconds aPLACEHOLDERrt, which is fine"
+        blob = json.dumps(req, indent=2).encode("utf-8")
+        blob = blob.replace(b"PLACEHOLDER", b"\xa5\xaa\xed")
+        rel_bad = f"{ml.DIR_BROWSER_REQUESTS}/{rid_bad}.json"
+        path = self.repo_path / rel_bad
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(blob)
+        self.repo.git("add", "--", rel_bad)
+        self.repo.git("commit", "-m", f"browser request {rid_bad}")
+
+        # sanity: it really is undecodable, and note where
+        try:
+            blob.decode("utf-8")
+            self.fail("fixture should not be valid UTF-8")
+        except UnicodeDecodeError as exc:
+            bad_offset = exc.start
+
+        # and a VALID request submitted after it, in the same pass
+        rid_good, _ = self.submit("status_request")
+
+        stats = self.bridge().run_once()          # must not raise
+
+        bad = self.result_for(rid_bad)
+        self.assertIsNotNone(bad, "the malformed request must get a receipt")
+        self.assertEqual(bad.get("status"), "blocked")
+        self.assertEqual(bad.get("request_id"), rid_bad)
+        reason = str(bad.get("reason"))
+        self.assertIn("not valid UTF-8", reason)
+        self.assertIn("0xA5", reason)
+        # the message must name the ACTUAL offset of the bad byte (the real
+        # incident was position 1806; here the fixture is smaller)
+        self.assertIn(str(bad_offset), reason)
+        self.assertIn("escape non-ASCII", reason)
+
+        good = self.result_for(rid_good)
+        self.assertIsNotNone(good, "a later valid request must still be processed")
+        self.assertEqual(good.get("status"), "completed")
+
+        self.assertEqual(stats["refused"], 1, stats)
+        self.assertEqual(stats["accepted"], 1, stats)
+
+        # the malformed file is left exactly as submitted
+        self.assertTrue(path.exists())
+        self.assertEqual(path.read_bytes(), blob,
+                         "a malformed request must never be rewritten or deleted")
+
+        # and nothing was created from it
+        self.assertEqual([m for m in self.msgs().values() if m.kind == "ticket"], [])
+
+    def test_malformed_utf8_is_a_non_blocking_validate_warning(self):
+        rid = "BREQ-20260730T023730Z-5e2b8f1c"
+        rel = f"{ml.DIR_BROWSER_REQUESTS}/{rid}.json"
+        path = self.repo_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b'{"x": "a\xa5b"}')
+        problems = ml.validate_repo(self.repo_path, scan_browser_requests=True)
+        hits = [p for p in problems if rid in p]
+        self.assertTrue(hits)
+        self.assertTrue(all(h.startswith(ml.QUARANTINE_PREFIX) for h in hits),
+                        "an untrusted proposal must not block the repository")
+
+    def test_unexpected_failure_on_one_request_does_not_abort_the_pass(self):
+        rid_bad, _ = self.submit("status_request")
+        rid_good, _ = self.submit("status_request")
+        original = bb.BrowserBridge.process
+
+        def explode(self_inner, rel, msgs):
+            if rid_bad in rel:
+                raise RuntimeError("synthetic unexpected failure")
+            return original(self_inner, rel, msgs)
+
+        bb.BrowserBridge.process = explode
+        self.addCleanup(setattr, bb.BrowserBridge, "process", original)
+
+        stats = self.bridge().run_once()
+        self.assertEqual(self.result_for(rid_bad).get("status"), "blocked")
+        self.assertIn("RuntimeError", str(self.result_for(rid_bad).get("reason")))
+        self.assertEqual(self.result_for(rid_good).get("status"), "completed")
+        self.assertEqual(stats["refused"], 1, stats)
+
     def test_secret_bearing_request_refused(self):
         rid, _ = self.submit(
             "status_request",

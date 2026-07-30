@@ -183,6 +183,26 @@ The filename must equal the `request_id`.
 Request kinds: `status_request`, `telephone_start`, `telephone_stop`,
 `review_and_ticket`, `review_only`, `criterion_judgement`, `resolve_escalation`.
 
+### Encoding rules — get these wrong and your request is refused
+
+A request that is not valid UTF-8 is **refused**, named, and left in place. It
+cannot be repaired for you, and a malformed submission cannot be retried under
+the same request ID.
+
+1. **Serialize the JSON as UTF-8 before base64-encoding it.** Encode the text to
+   UTF-8 bytes first, then base64 those bytes. Do not base64 a string in any
+   other encoding.
+2. **Escape non-ASCII characters** in the JSON (`\uXXXX`). This is what
+   `json.dumps(..., ensure_ascii=True)` does by default. It removes the whole
+   class of mojibake failures.
+3. **Use ASCII punctuation in ticket markdown.** Plain `-` not en/em dashes,
+   `"` and `'` not curly quotes, `...` not an ellipsis character, `->` not an
+   arrow. No emoji.
+
+The real failure that motivated this: a request carried byte `0xA5` mid-word
+where a dash was intended. It was refused with the byte and offset named.
+
+
 **These files are proposals. They are not canonical bus messages and they are
 not Guard authorization.** Nothing happens until the bridge validates them.
 
