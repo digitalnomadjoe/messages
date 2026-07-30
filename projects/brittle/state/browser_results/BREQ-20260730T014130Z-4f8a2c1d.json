@@ -1,0 +1,8 @@
+{
+  "request_id": "BREQ-20260730T014130Z-4f8a2c1d",
+  "status": "refused",
+  "result_receipt": "BRITTLE-20260730T014255Z-52fb6aaa",
+  "canonical_message_ids": [],
+  "decided_at": "2026-07-30T01:42:55.950132Z",
+  "reason": "projects/brittle/browser_requests/BREQ-20260730T014130Z-4f8a2c1d.json: unknown field(s): ['stop_reason']"
+}

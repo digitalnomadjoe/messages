@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-07-30T01:40:12.063028Z",
-  "repo_head_at_generation": "81ebfc3b9fcb",
+  "generated_at": "2026-07-30T01:42:57.504870Z",
+  "repo_head_at_generation": "5e42a19a4716",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -89,7 +89,7 @@
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
-    "receipt": 29,
+    "receipt": 30,
     "report": 9,
     "review": 8,
     "telephone_run": 3,
@@ -118,8 +118,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-07-30T01:40:12.063028Z",
-  "last_successful_sync": "2026-07-30T01:40:12.063028Z",
+  "gateway_heartbeat": "2026-07-30T01:42:57.504870Z",
+  "last_successful_sync": "2026-07-30T01:42:57.504870Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
@@ -137,6 +137,10 @@
       {
         "request_id": "BREQ-20260729T234300Z-5e7a91c2",
         "reason": "not valid JSON: Extra data: line 1 column 1929 (char 1928)"
+      },
+      {
+        "request_id": "BREQ-20260730T014130Z-4f8a2c1d",
+        "reason": "projects/brittle/browser_requests/BREQ-20260730T014130Z-4f8a2c1d.json: unknown field(s): ['stop_reason']"
       }
     ],
     "recent_results": [
@@ -204,6 +208,14 @@
           "BRITTLE-20260729T234917Z-7847caaa"
         ],
         "decided_at": "2026-07-29T23:49:17.468102Z"
+      },
+      {
+        "request_id": "BREQ-20260730T014130Z-4f8a2c1d",
+        "status": "refused",
+        "result_receipt": "BRITTLE-20260730T014255Z-52fb6aaa",
+        "canonical_message_ids": [],
+        "decided_at": "2026-07-30T01:42:55.950132Z",
+        "reason": "projects/brittle/browser_requests/BREQ-20260730T014130Z-4f8a2c1d.json: unknown field(s): ['stop_reason']"
       }
     ]
   },
