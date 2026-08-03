@@ -1,27 +1,11 @@
 {
   "schema": 1,
-  "generated_at": "2026-08-03T19:40:42.342204Z",
-  "repo_head_at_generation": "ffd7ed826d9c",
-  "browser_telephone_ready": false,
-  "local_action_required": true,
-  "readiness_blockers": [
-    "control lane watcher is active but its snapshot is 322s old; it is wedged, not working",
-    "locomotion lane watcher is active but its snapshot is 313s old; it is wedged, not working"
-  ],
-  "required_local_actions": [
-    {
-      "reason": "Control lane watcher is running but wedged (its snapshot has stopped advancing)",
-      "command": "systemctl --user restart brittle-messages-control.service",
-      "verify_command": "systemctl --user status brittle-messages-control.service --no-pager",
-      "expected_result": "Active: active (running)"
-    },
-    {
-      "reason": "Locomotion lane watcher is running but wedged (its snapshot has stopped advancing)",
-      "command": "systemctl --user restart brittle-messages-locomotion.service",
-      "verify_command": "systemctl --user status brittle-messages-locomotion.service --no-pager",
-      "expected_result": "Active: active (running)"
-    }
-  ],
+  "generated_at": "2026-08-03T19:41:04.194213Z",
+  "repo_head_at_generation": "7480669b2c9c",
+  "browser_telephone_ready": true,
+  "local_action_required": false,
+  "readiness_blockers": [],
+  "required_local_actions": [],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -128,13 +112,14 @@
     "BRITTLE-20260803T161003Z-c868e272",
     "BRITTLE-20260803T172458Z-2a202b7f",
     "BRITTLE-20260803T175340Z-3c17885d",
-    "BRITTLE-20260803T192522Z-3a21dab4"
+    "BRITTLE-20260803T192522Z-3a21dab4",
+    "BRITTLE-20260803T194101Z-72b066e8"
   ],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
     "receipt": 42,
-    "report": 15,
+    "report": 16,
     "review": 10,
     "telephone_run": 4,
     "ticket": 5
@@ -162,8 +147,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-08-03T19:40:42.342204Z",
-  "last_successful_sync": "2026-08-03T19:40:42.342204Z",
+  "gateway_heartbeat": "2026-08-03T19:41:04.194213Z",
+  "last_successful_sync": "2026-08-03T19:41:04.194213Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
