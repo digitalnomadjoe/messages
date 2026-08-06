@@ -1,20 +1,13 @@
 {
   "schema": 1,
-  "generated_at": "2026-08-06T00:38:41.878468Z",
-  "repo_head_at_generation": "42dc9a9df1c4",
+  "generated_at": "2026-08-06T00:39:01.907182Z",
+  "repo_head_at_generation": "d2dce1836e3d",
   "browser_telephone_ready": false,
   "local_action_required": true,
   "readiness_blockers": [
-    "control lane watcher is active but its snapshot is 331s old; it is wedged, not working",
-    "locomotion lane watcher is active but its snapshot is 306s old; it is wedged, not working"
+    "locomotion lane watcher is active but its snapshot is 326s old; it is wedged, not working"
   ],
   "required_local_actions": [
-    {
-      "reason": "Control lane watcher is running but wedged (its snapshot has stopped advancing)",
-      "command": "systemctl --user restart brittle-messages-control.service",
-      "verify_command": "systemctl --user status brittle-messages-control.service --no-pager",
-      "expected_result": "Active: active (running)"
-    },
     {
       "reason": "Locomotion lane watcher is running but wedged (its snapshot has stopped advancing)",
       "command": "systemctl --user restart brittle-messages-locomotion.service",
@@ -182,13 +175,14 @@
     "BRITTLE-20260805T194747Z-5c3f565f",
     "BRITTLE-20260805T213504Z-d4fdc15a",
     "BRITTLE-20260805T215231Z-bc0a5981",
-    "BRITTLE-20260806T000232Z-84391beb"
+    "BRITTLE-20260806T000232Z-84391beb",
+    "BRITTLE-20260806T003841Z-8f7295aa"
   ],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
     "receipt": 42,
-    "report": 69,
+    "report": 70,
     "review": 10,
     "telephone_run": 4,
     "ticket": 5
@@ -216,8 +210,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-08-06T00:38:41.878468Z",
-  "last_successful_sync": "2026-08-06T00:38:41.878468Z",
+  "gateway_heartbeat": "2026-08-06T00:39:01.907182Z",
+  "last_successful_sync": "2026-08-06T00:39:01.907182Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
