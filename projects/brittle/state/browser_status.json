@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "generated_at": "2026-08-09T23:02:02.437489Z",
-  "repo_head_at_generation": "ba23e04148ea",
+  "generated_at": "2026-08-09T23:02:24.211482Z",
+  "repo_head_at_generation": "bca29ee27a90",
   "browser_telephone_ready": false,
   "local_action_required": true,
   "readiness_blockers": [
-    "control lane watcher is active but its snapshot is 301s old; it is wedged, not working",
-    "locomotion lane watcher is active but its snapshot is 303s old; it is wedged, not working"
+    "control lane watcher is active but its snapshot is 322s old; it is wedged, not working",
+    "locomotion lane watcher is active but its snapshot is 325s old; it is wedged, not working"
   ],
   "required_local_actions": [
     {
@@ -253,13 +253,14 @@
     "BRITTLE-20260809T182137Z-3486c658",
     "BRITTLE-20260809T183409Z-a3081f89",
     "BRITTLE-20260809T190601Z-b74548b1",
-    "BRITTLE-20260809T192907Z-f619092e"
+    "BRITTLE-20260809T192907Z-f619092e",
+    "BRITTLE-20260809T230209Z-c5283c03"
   ],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
     "receipt": 42,
-    "report": 140,
+    "report": 141,
     "review": 10,
     "telephone_run": 4,
     "ticket": 5
@@ -287,8 +288,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-08-09T23:02:02.437489Z",
-  "last_successful_sync": "2026-08-09T23:02:02.437489Z",
+  "gateway_heartbeat": "2026-08-09T23:02:24.211482Z",
+  "last_successful_sync": "2026-08-09T23:02:24.211482Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
