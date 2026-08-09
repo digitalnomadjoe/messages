@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-08-09T15:24:48.124171Z",
-  "repo_head_at_generation": "45b682d3ecf9",
+  "generated_at": "2026-08-09T15:26:31.470556Z",
+  "repo_head_at_generation": "eb8f3eeeb9dc",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -225,13 +225,14 @@
     "BRITTLE-20260809T052523Z-304e489e",
     "BRITTLE-20260809T140041Z-7f78209c",
     "BRITTLE-20260809T142049Z-807b1091",
-    "BRITTLE-20260809T145434Z-13f1ca28"
+    "BRITTLE-20260809T145434Z-13f1ca28",
+    "BRITTLE-20260809T152626Z-d8aed5ab"
   ],
   "message_counts": {
     "escalation": 1,
     "owner_decision": 1,
     "receipt": 42,
-    "report": 128,
+    "report": 129,
     "review": 10,
     "telephone_run": 4,
     "ticket": 5
@@ -259,8 +260,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-08-09T15:24:48.124171Z",
-  "last_successful_sync": "2026-08-09T15:24:48.124171Z",
+  "gateway_heartbeat": "2026-08-09T15:26:31.470556Z",
+  "last_successful_sync": "2026-08-09T15:26:31.470556Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
