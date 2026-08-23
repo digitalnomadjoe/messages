@@ -11,10 +11,12 @@
       "lease_expires_at": "2026-08-23T23:54:28.690029Z"
     }
   },
-  "open_escalations": [],
+  "open_escalations": [
+    "BRITTLE-20260823T232404Z-d2bf0970"
+  ],
   "reviewer_cursor": "BRITTLE-20260730T015637Z-914c4683",
   "counts": {
-    "escalation": 1,
+    "escalation": 2,
     "owner_decision": 1,
     "receipt": 46,
     "report": 154,
