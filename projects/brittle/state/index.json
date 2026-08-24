@@ -8,7 +8,7 @@
   "active_claims": {
     "BRITTLE-20260824T144750Z-c3a7259f": {
       "agent": "locomotion",
-      "lease_expires_at": "2026-08-24T15:32:52.335703Z"
+      "lease_expires_at": "2026-08-24T15:46:57.250215Z"
     }
   },
   "open_escalations": [],
@@ -16,7 +16,7 @@
   "counts": {
     "escalation": 3,
     "owner_decision": 3,
-    "receipt": 60,
+    "receipt": 61,
     "report": 157,
     "review": 10,
     "telephone_run": 4,
