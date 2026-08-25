@@ -4,16 +4,19 @@
     "control": "BRITTLE-20260730T015637Z-914c4683",
     "locomotion": "BRITTLE-20260825T190255Z-16e5352e"
   },
-  "open_ticket_by_lane": {
-    "locomotion": "BRITTLE-20260825T192433Z-b1016822"
+  "open_ticket_by_lane": {},
+  "active_claims": {
+    "BRITTLE-20260825T192433Z-b1016822": {
+      "agent": "locomotion",
+      "lease_expires_at": "2026-08-25T20:09:35.794536Z"
+    }
   },
-  "active_claims": {},
   "open_escalations": [],
   "reviewer_cursor": "BRITTLE-20260730T015637Z-914c4683",
   "counts": {
     "escalation": 3,
     "owner_decision": 3,
-    "receipt": 121,
+    "receipt": 122,
     "report": 182,
     "review": 10,
     "telephone_run": 4,
