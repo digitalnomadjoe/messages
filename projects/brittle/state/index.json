@@ -6,10 +6,12 @@
   },
   "open_ticket_by_lane": {},
   "active_claims": {},
-  "open_escalations": [],
+  "open_escalations": [
+    "BRITTLE-20260825T215149Z-607619ee"
+  ],
   "reviewer_cursor": "BRITTLE-20260730T015637Z-914c4683",
   "counts": {
-    "escalation": 3,
+    "escalation": 4,
     "owner_decision": 3,
     "receipt": 127,
     "report": 183,
