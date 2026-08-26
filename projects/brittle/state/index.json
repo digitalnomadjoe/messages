@@ -4,7 +4,9 @@
     "control": "BRITTLE-20260730T015637Z-914c4683",
     "locomotion": "BRITTLE-20260826T034805Z-89922287"
   },
-  "open_ticket_by_lane": {},
+  "open_ticket_by_lane": {
+    "locomotion": "BRITTLE-20260826T035158Z-5f117e0a"
+  },
   "active_claims": {},
   "open_escalations": [
     "BRITTLE-20260825T215149Z-607619ee",
@@ -18,6 +20,6 @@
     "report": 188,
     "review": 10,
     "telephone_run": 4,
-    "ticket": 38
+    "ticket": 39
   }
 }
