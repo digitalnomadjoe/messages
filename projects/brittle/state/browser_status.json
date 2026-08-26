@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-08-26T03:44:09.907084Z",
-  "repo_head_at_generation": "1083bb85a013",
+  "generated_at": "2026-08-26T03:48:16.178882Z",
+  "repo_head_at_generation": "f0a138dbda3c",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -105,12 +105,7 @@
     }
   ],
   "open_tickets_by_lane": {},
-  "active_claims": {
-    "BRITTLE-20260826T034355Z-5f02c938": {
-      "agent": "locomotion",
-      "lease_expires_at": "2026-08-26T04:28:57.993209Z"
-    }
-  },
+  "active_claims": {},
   "open_escalations": [
     "BRITTLE-20260825T215149Z-607619ee",
     "BRITTLE-20260826T002314Z-8058fd5b"
@@ -292,13 +287,14 @@
     "BRITTLE-20260825T234516Z-ef8102b7",
     "BRITTLE-20260826T002311Z-c9a8efe6",
     "BRITTLE-20260826T031116Z-49d84742",
-    "BRITTLE-20260826T034024Z-424db3df"
+    "BRITTLE-20260826T034024Z-424db3df",
+    "BRITTLE-20260826T034805Z-89922287"
   ],
   "message_counts": {
     "escalation": 5,
     "owner_decision": 3,
-    "receipt": 137,
-    "report": 187,
+    "receipt": 138,
+    "report": 188,
     "review": 10,
     "telephone_run": 4,
     "ticket": 38
@@ -326,8 +322,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-08-26T03:44:09.907084Z",
-  "last_successful_sync": "2026-08-26T03:44:09.907084Z",
+  "gateway_heartbeat": "2026-08-26T03:48:16.178882Z",
+  "last_successful_sync": "2026-08-26T03:48:16.178882Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
