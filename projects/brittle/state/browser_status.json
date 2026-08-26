@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-08-26T16:52:09.905610Z",
-  "repo_head_at_generation": "4cc69aca38ed",
+  "generated_at": "2026-08-26T16:57:41.597355Z",
+  "repo_head_at_generation": "a268bcd250a7",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -107,12 +107,7 @@
   "open_tickets_by_lane": {
     "locomotion": "BRITTLE-20260826T154917Z-eb7803a3"
   },
-  "active_claims": {
-    "BRITTLE-20260826T161235Z-ed2f3704": {
-      "agent": "locomotion",
-      "lease_expires_at": "2026-08-26T16:57:37.158490Z"
-    }
-  },
+  "active_claims": {},
   "open_escalations": [
     "BRITTLE-20260825T215149Z-607619ee",
     "BRITTLE-20260826T002314Z-8058fd5b"
@@ -332,8 +327,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-08-26T16:52:09.905610Z",
-  "last_successful_sync": "2026-08-26T16:52:09.905610Z",
+  "gateway_heartbeat": "2026-08-26T16:57:41.597355Z",
+  "last_successful_sync": "2026-08-26T16:57:41.597355Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
