@@ -12,11 +12,12 @@
     }
   },
   "open_escalations": [
-    "BRITTLE-20260825T215149Z-607619ee"
+    "BRITTLE-20260825T215149Z-607619ee",
+    "BRITTLE-20260826T002314Z-8058fd5b"
   ],
   "reviewer_cursor": "BRITTLE-20260730T015637Z-914c4683",
   "counts": {
-    "escalation": 4,
+    "escalation": 5,
     "owner_decision": 3,
     "receipt": 130,
     "report": 185,
