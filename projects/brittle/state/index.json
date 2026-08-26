@@ -5,12 +5,7 @@
     "locomotion": "BRITTLE-20260826T134432Z-6c7770c0"
   },
   "open_ticket_by_lane": {},
-  "active_claims": {
-    "BRITTLE-20260826T135637Z-8b376cf3": {
-      "agent": "locomotion",
-      "lease_expires_at": "2026-08-26T14:41:40.109802Z"
-    }
-  },
+  "active_claims": {},
   "open_escalations": [
     "BRITTLE-20260825T215149Z-607619ee",
     "BRITTLE-20260826T002314Z-8058fd5b"
@@ -19,7 +14,7 @@
   "counts": {
     "escalation": 5,
     "owner_decision": 3,
-    "receipt": 142,
+    "receipt": 143,
     "report": 189,
     "review": 10,
     "telephone_run": 4,
