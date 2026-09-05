@@ -1,24 +1,17 @@
 {
   "schema": 1,
-  "generated_at": "2026-09-05T21:09:20.935697Z",
-  "repo_head_at_generation": "8a4ce4f38455",
+  "generated_at": "2026-09-05T21:09:23.108361Z",
+  "repo_head_at_generation": "420bb4b7260f",
   "browser_telephone_ready": false,
   "local_action_required": true,
   "readiness_blockers": [
-    "control lane watcher is active but its snapshot is 300s old; it is wedged, not working",
-    "locomotion lane watcher is active but its snapshot is 329s old; it is wedged, not working"
+    "control lane watcher is active but its snapshot is 302s old; it is wedged, not working"
   ],
   "required_local_actions": [
     {
       "reason": "Control lane watcher is running but wedged (its snapshot has stopped advancing)",
       "command": "systemctl --user restart brittle-messages-control.service",
       "verify_command": "systemctl --user status brittle-messages-control.service --no-pager",
-      "expected_result": "Active: active (running)"
-    },
-    {
-      "reason": "Locomotion lane watcher is running but wedged (its snapshot has stopped advancing)",
-      "command": "systemctl --user restart brittle-messages-locomotion.service",
-      "verify_command": "systemctl --user status brittle-messages-locomotion.service --no-pager",
       "expected_result": "Active: active (running)"
     }
   ],
@@ -357,8 +350,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-09-05T21:09:20.935697Z",
-  "last_successful_sync": "2026-09-05T21:09:20.935697Z",
+  "gateway_heartbeat": "2026-09-05T21:09:23.108361Z",
+  "last_successful_sync": "2026-09-05T21:09:23.108361Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
