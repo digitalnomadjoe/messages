@@ -1,20 +1,11 @@
 {
   "schema": 1,
-  "generated_at": "2026-09-05T05:43:47.123242Z",
-  "repo_head_at_generation": "8aaf962153e5",
-  "browser_telephone_ready": false,
-  "local_action_required": true,
-  "readiness_blockers": [
-    "control lane watcher is active but its snapshot is 332s old; it is wedged, not working"
-  ],
-  "required_local_actions": [
-    {
-      "reason": "Control lane watcher is running but wedged (its snapshot has stopped advancing)",
-      "command": "systemctl --user restart brittle-messages-control.service",
-      "verify_command": "systemctl --user status brittle-messages-control.service --no-pager",
-      "expected_result": "Active: active (running)"
-    }
-  ],
+  "generated_at": "2026-09-05T05:44:07.095243Z",
+  "repo_head_at_generation": "bded6c9a4f9d",
+  "browser_telephone_ready": true,
+  "local_action_required": false,
+  "readiness_blockers": [],
+  "required_local_actions": [],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -350,8 +341,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-09-05T05:43:47.123242Z",
-  "last_successful_sync": "2026-09-05T05:43:47.123242Z",
+  "gateway_heartbeat": "2026-09-05T05:44:07.095243Z",
+  "last_successful_sync": "2026-09-05T05:44:07.095243Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
