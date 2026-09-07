@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated_at": "2026-09-07T13:24:35.090880Z",
-  "repo_head_at_generation": "389393dc204c",
+  "generated_at": "2026-09-07T13:39:36.290129Z",
+  "repo_head_at_generation": "da4cad0e7619",
   "browser_telephone_ready": true,
   "local_action_required": false,
   "readiness_blockers": [],
@@ -341,8 +341,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-09-07T13:24:35.090880Z",
-  "last_successful_sync": "2026-09-07T13:24:35.090880Z",
+  "gateway_heartbeat": "2026-09-07T13:39:36.290129Z",
+  "last_successful_sync": "2026-09-07T13:39:36.290129Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
