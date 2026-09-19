@@ -1,34 +1,11 @@
 {
   "schema": 1,
-  "generated_at": "2026-09-19T17:36:50.026963Z",
-  "repo_head_at_generation": "f7835e9ca3c4",
-  "browser_telephone_ready": false,
-  "local_action_required": true,
-  "readiness_blockers": [
-    "browser bridge is installed but not running",
-    "control lane watcher is not running",
-    "locomotion lane watcher is not running"
-  ],
-  "required_local_actions": [
-    {
-      "reason": "Browser bridge is installed but inactive",
-      "command": "systemctl --user enable --now brittle-browser-bridge.service",
-      "verify_command": "systemctl --user status brittle-browser-bridge.service --no-pager",
-      "expected_result": "Active: active (running)"
-    },
-    {
-      "reason": "Control lane watcher is not running",
-      "command": "systemctl --user enable --now brittle-messages-control.service",
-      "verify_command": "systemctl --user status brittle-messages-control.service --no-pager",
-      "expected_result": "Active: active (running)"
-    },
-    {
-      "reason": "Locomotion lane watcher is not running",
-      "command": "systemctl --user enable --now brittle-messages-locomotion.service",
-      "verify_command": "systemctl --user status brittle-messages-locomotion.service --no-pager",
-      "expected_result": "Active: active (running)"
-    }
-  ],
+  "generated_at": "2026-09-19T18:04:57.571976Z",
+  "repo_head_at_generation": "35fa76a7c7d4",
+  "browser_telephone_ready": true,
+  "local_action_required": false,
+  "readiness_blockers": [],
+  "required_local_actions": [],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -348,8 +325,8 @@
   "api_reviewer_mode_enabled": false,
   "services": {
     "bridge": {
-      "active": false,
-      "pid": 1143,
+      "active": true,
+      "pid": 945,
       "restarts": 0
     },
     "api_reviewer": {
@@ -358,18 +335,18 @@
       "restarts": 0
     },
     "lane_locomotion": {
-      "active": false,
-      "pid": 1148,
+      "active": true,
+      "pid": 949,
       "restarts": 0
     },
     "lane_control": {
-      "active": false,
-      "pid": 1146,
+      "active": true,
+      "pid": 948,
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-09-19T17:36:50.026963Z",
-  "last_successful_sync": "2026-09-19T17:36:50.026963Z",
+  "gateway_heartbeat": "2026-09-19T18:04:57.571976Z",
+  "last_successful_sync": "2026-09-19T18:04:57.571976Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
@@ -383,7 +360,7 @@
   },
   "lane_executors": {
     "locomotion": {
-      "service_active": false,
+      "service_active": true,
       "executing": false,
       "current_ticket": null,
       "current_handler": null,
@@ -396,7 +373,7 @@
       "high_water_mark": "2026-07-30T02:29:17.581411Z"
     },
     "control": {
-      "service_active": false,
+      "service_active": true,
       "executing": false,
       "current_ticket": null,
       "current_handler": null,
