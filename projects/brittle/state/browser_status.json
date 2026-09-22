@@ -1,20 +1,11 @@
 {
   "schema": 1,
-  "generated_at": "2026-09-22T20:43:45.622726Z",
-  "repo_head_at_generation": "f2e1ca83cd33",
-  "browser_telephone_ready": false,
-  "local_action_required": true,
-  "readiness_blockers": [
-    "browser bridge heartbeat is stale (62227s old, expected under 2700s)"
-  ],
-  "required_local_actions": [
-    {
-      "reason": "Browser bridge is running but its heartbeat has not advanced",
-      "command": "systemctl --user restart brittle-browser-bridge.service",
-      "verify_command": "systemctl --user status brittle-browser-bridge.service --no-pager",
-      "expected_result": "Active: active (running)"
-    }
-  ],
+  "generated_at": "2026-09-22T20:44:06.064812Z",
+  "repo_head_at_generation": "fbfd82be637f",
+  "browser_telephone_ready": true,
+  "local_action_required": false,
+  "readiness_blockers": [],
+  "required_local_actions": [],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -356,8 +347,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-09-22T20:43:45.622726Z",
-  "last_successful_sync": "2026-09-22T20:43:45.622726Z",
+  "gateway_heartbeat": "2026-09-22T20:44:06.064812Z",
+  "last_successful_sync": "2026-09-22T20:44:06.064812Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
