@@ -2,7 +2,7 @@
   "schema": 1,
   "latest_report_by_lane": {
     "control": "BRITTLE-20260730T015637Z-914c4683",
-    "locomotion": "BRITTLE-20260921T235255Z-ae7c531d"
+    "locomotion": "BRITTLE-20260923T002640Z-9196dbd3"
   },
   "open_ticket_by_lane": {},
   "active_claims": {},
@@ -15,7 +15,7 @@
     "escalation": 5,
     "owner_decision": 3,
     "receipt": 149,
-    "report": 213,
+    "report": 214,
     "review": 10,
     "telephone_run": 4,
     "ticket": 43
