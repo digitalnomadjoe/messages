@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-02T23:06:09.817316Z",
-  "repo_head_at_generation": "2950658802f2",
+  "generated_at": "2026-10-02T23:06:32.070523Z",
+  "repo_head_at_generation": "c71f913a48b8",
   "browser_telephone_ready": false,
   "local_action_required": true,
   "readiness_blockers": [
-    "control lane watcher is active but its snapshot is 306s old; it is wedged, not working"
+    "control lane watcher is active but its snapshot is 328s old; it is wedged, not working"
   ],
   "required_local_actions": [
     {
@@ -357,8 +357,8 @@
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-10-02T23:06:09.817316Z",
-  "last_successful_sync": "2026-10-02T23:06:09.817316Z",
+  "gateway_heartbeat": "2026-10-02T23:06:32.070523Z",
+  "last_successful_sync": "2026-10-02T23:06:32.070523Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
