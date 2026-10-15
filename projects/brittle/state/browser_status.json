@@ -1,11 +1,20 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-14T23:12:30.355001Z",
-  "repo_head_at_generation": "dac9f844b6c0",
-  "browser_telephone_ready": true,
-  "local_action_required": false,
-  "readiness_blockers": [],
-  "required_local_actions": [],
+  "generated_at": "2026-10-15T22:03:41.227315Z",
+  "repo_head_at_generation": "34bcf86dd228",
+  "browser_telephone_ready": false,
+  "local_action_required": true,
+  "readiness_blockers": [
+    "browser bridge heartbeat is stale (82271s old, expected under 2700s)"
+  ],
+  "required_local_actions": [
+    {
+      "reason": "Browser bridge is running but its heartbeat has not advanced",
+      "command": "systemctl --user restart brittle-browser-bridge.service",
+      "verify_command": "systemctl --user status brittle-browser-bridge.service --no-pager",
+      "expected_result": "Active: active (running)"
+    }
+  ],
   "telephone_runs": [
     {
       "run_id": "BRITTLE-20260729T171110Z-bc404f06",
@@ -329,7 +338,7 @@
   "services": {
     "bridge": {
       "active": true,
-      "pid": 960,
+      "pid": 987,
       "restarts": 0
     },
     "api_reviewer": {
@@ -339,17 +348,17 @@
     },
     "lane_locomotion": {
       "active": true,
-      "pid": 964,
+      "pid": 991,
       "restarts": 0
     },
     "lane_control": {
       "active": true,
-      "pid": 963,
+      "pid": 990,
       "restarts": 0
     }
   },
-  "gateway_heartbeat": "2026-10-14T23:12:30.355001Z",
-  "last_successful_sync": "2026-10-14T23:12:30.355001Z",
+  "gateway_heartbeat": "2026-10-15T22:03:41.227315Z",
+  "last_successful_sync": "2026-10-15T22:03:41.227315Z",
   "spending_guard": {
     "day_committed_usd": 0.0,
     "day_cap_usd": 0.5,
